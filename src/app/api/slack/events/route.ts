@@ -99,36 +99,33 @@ export async function POST(request: Request) {
       if (matches.length === 0) {
         return NextResponse.json({
           response_type: 'in_channel',
-          text: `No decisions found matching: "${text}"`
+          text: `🔍 No decisions found for: _"${text}"_\nTry logging more decisions with \`/decide\`.`
         });
       }
 
-      // Format rich message blocks for Slack
+      const topSimilarity: number = matches[0]?.similarity ?? 0;
+      const headerText = topSimilarity < 0.65
+        ? `🔍 *Closest matches found (may not be perfect):* _"${text}"_`
+        : `🔍 *Top results for:* _"${text}"_`;
+
       const blocks: Record<string, unknown>[] = [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `🔍 *Top results for:* "${text}"`
-          }
-        },
-        { type: "divider" }
+        { type: 'section', text: { type: 'mrkdwn', text: headerText } },
+        { type: 'divider' },
       ];
 
-      matches.forEach((m: { similarity: number, text: string }) => {
+      matches.forEach((m: { similarity: number; text: string }) => {
+        const pct = (m.similarity * 100).toFixed(1);
+        const bar = m.similarity >= 0.75 ? '🟢' : m.similarity >= 0.65 ? '🟡' : '🔴';
         blocks.push({
-          type: "section",
+          type: 'section',
           text: {
-            type: "mrkdwn",
-            text: `*${(m.similarity * 100).toFixed(1)}% match*\n${m.text}`
+            type: 'mrkdwn',
+            text: `${bar} *${pct}% match*\n${m.text}`
           }
         });
       });
 
-      return NextResponse.json({
-        response_type: 'in_channel',
-        blocks
-      });
+      return NextResponse.json({ response_type: 'in_channel', blocks });
     }
 
     return NextResponse.json({ text: `Unknown command: ${command}` });
