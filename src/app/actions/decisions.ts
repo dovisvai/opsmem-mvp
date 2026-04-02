@@ -100,8 +100,8 @@ export async function searchDecisions(query: string, workspaceId: string) {
     const { data, error: dbError } = await supabaseAdmin.rpc('match_decisions', {
       query_embedding,
       workspace_id: parsed.data.workspaceId,
-      match_threshold: 0.78,
-      match_count: 5,
+      match_threshold: 0.65,
+      match_count: 8,
     });
 
     if (dbError) throw new Error('Database interaction failed');

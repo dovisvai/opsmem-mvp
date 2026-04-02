@@ -120,7 +120,7 @@ export async function POST(request: Request) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*(Match: ${(m.similarity * 100).toFixed(1)}%)*\n${m.text}`
+            text: `*${(m.similarity * 100).toFixed(1)}% match*\n${m.text}`
           }
         });
       });
