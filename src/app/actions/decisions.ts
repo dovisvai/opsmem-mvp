@@ -78,8 +78,9 @@ export async function logDecision(text: string, workspaceId: string, userId: str
 
     if (dbError) throw new Error('Database insertion failed');
     return { success: true };
-  } catch {
-    return { success: false, error: 'An unexpected internal error occurred.' };
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    return { success: false, error: errorMsg };
   }
 }
 
@@ -107,7 +108,8 @@ export async function searchDecisions(query: string, workspaceId: string) {
     if (dbError) throw new Error('Database interaction failed');
     
     return { success: true, data };
-  } catch {
-    return { success: false, error: 'An unexpected internal error occurred during search.' };
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    return { success: false, error: errorMsg };
   }
 }

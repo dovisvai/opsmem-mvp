@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       });
     }
 
-    if (command === '/search') {
+    if (command === '/find') {
       const result = await searchDecisions(text, workspace_id);
       if (!result.success) {
         return NextResponse.json({
@@ -132,8 +132,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ text: `Unknown command: ${command}` });
-  } catch {
-    return NextResponse.json({ text: 'Internal Server Error' }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ text: `Internal Server Error: ${errorMsg}` }, { status: 500 });
   }
 }
 
