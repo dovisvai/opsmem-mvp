@@ -68,10 +68,10 @@ export async function POST(request: Request) {
       if (!result.success) {
         // Handle Subscription required prompt
         if (result.requiresUpgrade) {
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+          const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opsmem.com';
           return NextResponse.json({
             response_type: 'ephemeral',
-            text: `🚨 *Free Plan Limit Reached (10 decisions/month)*\nUpgrade your workspace to unlock unlimited memory here: ${siteUrl}/pricing?workspace=${workspace_id}`
+            text: `🚨 *Free Plan Limit Reached (25 decisions/month)*\nUpgrade to Pro for unlimited memory: ${siteUrl}/pricing?workspace=${workspace_id}`
           });
         }
         

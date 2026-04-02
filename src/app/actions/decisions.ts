@@ -43,8 +43,8 @@ export async function logDecision(text: string, workspaceId: string, userId: str
 
     if (countError) throw countError;
 
-    // 2. If usage >= 10, verify active subscription
-    if ((count || 0) >= 10) {
+    // 2. If usage >= 25, verify active subscription
+    if ((count || 0) >= 25) {
       const { data: sub } = await supabaseAdmin
         .from('subscriptions')
         .select('status')
@@ -54,7 +54,7 @@ export async function logDecision(text: string, workspaceId: string, userId: str
         .maybeSingle();
       
       if (!sub) {
-        return { success: false, requiresUpgrade: true, error: "Free plan limit reached (10 decisions/month). Please upgrade." };
+        return { success: false, requiresUpgrade: true, error: "Free plan limit reached (25 decisions/month). Please upgrade." };
       }
     }
 

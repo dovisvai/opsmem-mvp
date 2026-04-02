@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 export async function createCheckoutSession(workspaceId: string) {
   try {
-    const origin = (await headers()).get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const origin = (await headers()).get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'https://opsmem.com';
     
     // NOTE: This requires STRIPE_PRICE_ID_PRO in your environment representing your $19/mo product
     const priceId = process.env.STRIPE_PRICE_ID_PRO || 'price_1234567890'; 
