@@ -82,7 +82,7 @@ Deploying OpsMem to production takes just a few clicks thanks to Vercel and Supa
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
-   - `XAI_API_KEY`
+   - `OPENAI_API_KEY`
    - `SLACK_BOT_TOKEN`
    - `STRIPE_SECRET_KEY`
    - `STRIPE_WEBHOOK_SECRET`
@@ -107,3 +107,5 @@ For this MVP, a rigorous production-hardening pipeline was manually implemented 
 - **Crypto HMAC Verification**: Native Node cryptography processes `X-Slack-Signature` and standard timestamps securely parsing standard API endpoints with rate limits. 
 - **Zod Data Sanitizations**: Core semantic actions evaluate type structures safely via comprehensive generic masking to ensure error streams don't trace back to internal server stacks.
 - **HTTP Hardening Maps**: Embedded `Strict-Transport-Security`, CSP rules, and `X-Content-Type` mitigations through `next.config.mjs`.
+
+*Note*: We are temporarily natively running on `text-embedding-3-small` (OpenAI embeddings) due to the absence of public endpoints for `grok-embedding` pipelines at xAI! We will transition over when xAI publicly launches robust models.

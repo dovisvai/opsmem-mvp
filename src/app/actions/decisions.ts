@@ -17,9 +17,8 @@ const searchDecisionsSchema = z.object({
   workspaceId: z.string().min(1),
 });
 
-const grok = new OpenAI({
-  apiKey: process.env.XAI_API_KEY || 'dummy_key',
-  baseURL: "https://api.x.ai/v1",
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || 'dummy_key',
 });
 
 export async function logDecision(text: string, workspaceId: string, userId: string, tags?: string[], context?: Record<string, unknown>) {
@@ -59,8 +58,8 @@ export async function logDecision(text: string, workspaceId: string, userId: str
       }
     }
 
-    const embeddingResponse = await grok.embeddings.create({
-      model: 'grok-embedding-small',
+    const embeddingResponse = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
       input: text,
     });
     const embedding = embeddingResponse.data[0].embedding;
@@ -91,8 +90,8 @@ export async function searchDecisions(query: string, workspaceId: string) {
       return { success: false, error: 'Invalid query parameters.' };
     }
 
-    const embeddingResponse = await grok.embeddings.create({
-      model: 'grok-embedding-small',
+    const embeddingResponse = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
       input: parsed.data.query,
     });
     const query_embedding = embeddingResponse.data[0].embedding;
