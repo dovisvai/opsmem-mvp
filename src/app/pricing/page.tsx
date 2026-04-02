@@ -39,7 +39,7 @@ function PricingContent() {
       <h1 className="text-5xl font-extrabold tracking-tight">Upgrade your OpsMem Workspace</h1>
       {workspaceId ? (
         <p className="text-xl text-slate-600 max-w-2xl mx-auto pt-4">
-          Unlock unlimited Grok-powered architectural memory for workspace <strong className="text-blue-600 bg-blue-50 px-2 py-1 rounded">{workspaceId}</strong>.
+          Unlock unlimited OpenAI-powered semantic memory for workspace <strong className="text-blue-600 bg-blue-50 px-2 py-1 rounded">{workspaceId}</strong>.
         </p>
       ) : (
         <p className="text-xl text-slate-500 max-w-2xl mx-auto pt-4 border border-dashed border-red-300 bg-red-50 p-2 rounded">
@@ -58,7 +58,7 @@ function PricingContent() {
             <h3 className="text-5xl font-bold text-slate-800">$0<span className="text-xl text-slate-500 font-normal">/mo</span></h3>
             <ul className="space-y-3 text-slate-600 font-medium">
               <li>✓ 10 Decisions / month</li>
-              <li>✓ Grok standard semantic retrieval</li>
+              <li>✓ OpenAI semantic retrieval</li>
               <li>✓ Next.js native UI access</li>
             </ul>
           </CardContent>
@@ -81,7 +81,7 @@ function PricingContent() {
             <ul className="space-y-3 text-slate-700 font-medium">
               <li>✓ <strong>Unlimited</strong> Decisions / month</li>
               <li>✓ Slack webhooks & integrations</li>
-              <li>✓ Priority Grok embeddings pipeline</li>
+              <li>✓ Priority OpenAI embeddings pipeline</li>
               <li>✓ Premium support SLA</li>
             </ul>
           </CardContent>

@@ -108,4 +108,4 @@ For this MVP, a rigorous production-hardening pipeline was manually implemented 
 - **Zod Data Sanitizations**: Core semantic actions evaluate type structures safely via comprehensive generic masking to ensure error streams don't trace back to internal server stacks.
 - **HTTP Hardening Maps**: Embedded `Strict-Transport-Security`, CSP rules, and `X-Content-Type` mitigations through `next.config.mjs`.
 
-*Note*: We are temporarily natively running on `text-embedding-3-small` (OpenAI embeddings) due to the absence of public endpoints for `grok-embedding` pipelines at xAI! We will transition over when xAI publicly launches robust models.
+*Note*: Currently using `text-embedding-3-small` (OpenAI embeddings). We will transition to Grok embeddings when xAI publicly launches a compatible embedding model.

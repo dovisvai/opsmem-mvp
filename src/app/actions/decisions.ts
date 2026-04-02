@@ -105,8 +105,20 @@ export async function searchDecisions(query: string, workspaceId: string) {
     });
 
     if (dbError) throw new Error('Database interaction failed');
-    
-    return { success: true, data };
+
+    // Fallback: if primary search returns nothing, fetch closest 3 by raw distance
+    let results = data || [];
+    if (results.length === 0) {
+      const { data: fallback } = await supabaseAdmin.rpc('match_decisions', {
+        query_embedding,
+        workspace_id: parsed.data.workspaceId,
+        match_threshold: 0.0,
+        match_count: 3,
+      });
+      results = fallback || [];
+    }
+
+    return { success: true, data: results.slice(0, 3) };
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     return { success: false, error: errorMsg };

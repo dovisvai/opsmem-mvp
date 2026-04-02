@@ -1,42 +1,88 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+
+export const metadata = {
+  title: 'OpsMem — Team Decision Log',
+  description: 'Never lose critical context again. OpsMem is your persistent team memory, powered by OpenAI semantic search and Slack.',
+};
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
-      <main className="max-w-3xl space-y-12">
-        <div className="space-y-6">
-          <h1 className="text-6xl font-extrabold tracking-tight text-slate-900 border-b border-slate-200 pb-8">
-            OpsMem <span className="text-blue-600 mx-2">—</span> <br/>
-            Team Decision Log 
-          </h1>
-          <p className="text-xl text-slate-600 font-medium leading-relaxed max-w-2xl mx-auto">
-            Never lose critical context again. OpsMem acts as your persistent architectural and organizational memory, 
-            natively powered by <strong className="text-slate-900">xAI Grok Semantic Search</strong>.
-          </p>
+    <div className="min-h-screen bg-black text-white flex flex-col" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+
+      {/* Nav */}
+      <nav className="border-b border-white/20 px-8 py-4 flex items-center justify-between">
+        <span className="text-white font-bold text-sm tracking-widest uppercase">[ OPSMEM ]</span>
+        <div className="flex gap-6 text-xs tracking-widest text-white/60">
+          <Link href="/dashboard" className="hover:text-white transition-colors uppercase">Dashboard</Link>
+          <Link href="/pricing" className="hover:text-white transition-colors uppercase">Pricing</Link>
         </div>
-        
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
-           <Link href="/dashboard">
-             <Button size="lg" className="px-10 py-6 text-lg tracking-wide rounded-full shadow-lg hover:shadow-xl transition-all h-auto">
-               Go to Dashboard
-             </Button>
-           </Link>
-           <Button size="lg" variant="outline" className="px-10 py-6 text-lg tracking-wide rounded-full bg-white h-auto" asChild>
-             <a href="https://slack.com/oauth/v2/authorize" target="_blank" rel="noopener noreferrer">
-               Install Slack Bot
-             </a>
-           </Button>
-           <Link href="/pricing">
-             <Button size="lg" variant="secondary" className="px-10 py-6 text-lg tracking-wide rounded-full shadow hover:shadow-md transition-all h-auto bg-slate-200">
-               View Pro Pricing
-             </Button>
-           </Link>
+      </nav>
+
+      {/* Hero */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center">
+
+        {/* Pixel Logo */}
+        <div className="mb-10 border-4 border-white p-4 inline-block" style={{ imageRendering: 'pixelated' }}>
+          <Image
+            src="/opsmem.png"
+            alt="OpsMem Logo"
+            width={200}
+            height={200}
+            style={{ imageRendering: 'pixelated' }}
+            priority
+          />
+        </div>
+
+        {/* Tagline */}
+        <h1 className="text-4xl md:text-6xl font-black tracking-tight uppercase mb-4 leading-none">
+          YOUR TEAM&apos;S<br />
+          <span className="border-b-4 border-white pb-1">DECISION MEMORY</span>
+        </h1>
+
+        <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto mt-6 leading-relaxed tracking-wide">
+          &gt; Log decisions via Slack with <span className="text-white font-bold">/decide</span>.<br />
+          &gt; Find any past decision instantly with <span className="text-white font-bold">/find</span>.<br />
+          &gt; Powered by OpenAI semantic search + Supabase.
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 mt-12">
+          <Link href="/dashboard">
+            <button className="px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-sm border-4 border-white hover:bg-black hover:text-white transition-all duration-100 cursor-pointer">
+              [ GO TO DASHBOARD ]
+            </button>
+          </Link>
+          <Link href="/pricing">
+            <button className="px-8 py-4 bg-black text-white font-black uppercase tracking-widest text-sm border-4 border-white hover:bg-white hover:text-black transition-all duration-100 cursor-pointer">
+              [ VIEW PRICING ]
+            </button>
+          </Link>
+          <a href="https://slack.com/oauth/v2/authorize" target="_blank" rel="noopener noreferrer">
+            <button className="px-8 py-4 bg-black text-white/60 font-black uppercase tracking-widest text-sm border-4 border-white/30 hover:border-white hover:text-white transition-all duration-100 cursor-pointer">
+              [ ADD TO SLACK ]
+            </button>
+          </a>
+        </div>
+
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 mt-20 w-full max-w-3xl border border-white/30">
+          {[
+            { cmd: '/decide', desc: 'Log any team decision directly from Slack. Stored with semantic embeddings.' },
+            { cmd: '/find', desc: 'Retrieve any past decision using natural language. AI finds the closest match.' },
+            { cmd: 'Dashboard', desc: 'Browse, search, and manage your entire decision history in a clean web UI.' },
+          ].map((f, i) => (
+            <div key={i} className="p-6 border-r border-white/10 last:border-r-0 text-left hover:bg-white/5 transition-colors">
+              <div className="text-white font-black text-lg mb-2 font-mono">{f.cmd}</div>
+              <div className="text-white/50 text-xs leading-relaxed tracking-wide">{f.desc}</div>
+            </div>
+          ))}
         </div>
       </main>
 
-      <footer className="fixed bottom-8 text-center text-slate-400 text-sm font-medium">
-        Powered by Next.js 16, Supabase pgvector, and xAI Grok.
+      {/* Footer */}
+      <footer className="border-t border-white/20 px-8 py-5 text-center text-white/30 text-xs tracking-widest uppercase">
+        OPSMEM © {new Date().getFullYear()} — BUILT ON NEXT.JS · SUPABASE · OPENAI
       </footer>
     </div>
   );

@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION match_decisions(
   query_embedding vector(1536),
   workspace_id text,
   match_threshold float DEFAULT 0.55,
-  match_count int DEFAULT 5
+  match_count int DEFAULT 3
 )
 RETURNS TABLE (
   id uuid,
