@@ -25,10 +25,10 @@ export default function Home() {
         {/* Pixel Logo */}
         <div className="mb-10 border-4 border-white p-4 inline-block" style={{ imageRendering: 'pixelated' }}>
           <Image
-            src="/opsmem.png"
+            src="/opsmem-logo.png"
             alt="OpsMem Logo"
-            width={200}
-            height={200}
+            width={100}
+            height={100}
             style={{ imageRendering: 'pixelated' }}
             priority
           />
