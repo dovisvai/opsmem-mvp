@@ -68,7 +68,7 @@ export default function Home() {
         {/* Feature Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-0 mt-20 w-full max-w-3xl border border-white/30">
           {[
-            { cmd: '/decide', desc: 'Log any team decision directly from Slack. Stored with semantic embeddings.' },
+            { cmd: '/decide', desc: 'Log any team decision directly from Slack. Add #tags anywhere in your message — e.g. #backend #q4 — to organise decisions automatically.' },
             { cmd: '/find', desc: 'Retrieve any past decision using natural language. AI finds the closest match.' },
             { cmd: 'Dashboard', desc: 'Browse, search, and manage your entire decision history in a clean web UI.' },
           ].map((f, i) => (

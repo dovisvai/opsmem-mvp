@@ -64,26 +64,40 @@ export async function POST(request: Request) {
     }
 
     if (command === '/decide') {
-      const result = await logDecision(text, workspace_id, user_id, [], {});
-      if (!result.success) {
+      // Extract #hashtags from anywhere in the message
+      const hashtagRegex = /#([\w-]+)/g;
+      const tagsArray = [...text.matchAll(hashtagRegex)].map(m => m[1].toLowerCase());
+      const cleanText = text.replace(hashtagRegex, '').replace(/\s{2,}/g, ' ').trim();
+
+      if (!cleanText) {
         return NextResponse.json({
           response_type: 'ephemeral',
-          text: `🚨 Error logging decision: ${result.error}`
+          text: '⚠️ Please include a decision message.\nExample: `/decide We chose PostgreSQL #backend #infra`',
         });
       }
 
-      // Decision was saved. If over free tier, add a soft upgrade nudge.
-      if (result.requiresUpgrade) {
-        const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opsmem.com';
+      const result = await logDecision(cleanText, workspace_id, user_id, tagsArray, {});
+      if (!result.success) {
+        if (result.requiresUpgrade) {
+          const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opsmem.com';
+          return NextResponse.json({
+            response_type: 'ephemeral',
+            text: `🚨 *Free Plan Limit Reached (25 decisions/month)*\nUpgrade to Pro for unlimited logging: ${siteUrl}/pricing?workspace=${workspace_id}`,
+          });
+        }
         return NextResponse.json({
-          response_type: 'in_channel',
-          text: `✅ *Decision logged by <@${user_id}>:*\n${text}\n\n💡 _Free plan limit reached (25/mo). Upgrade for unlimited: ${siteUrl}/pricing?workspace=${workspace_id}_`
+          response_type: 'ephemeral',
+          text: `🚨 Error logging decision: ${result.error}`,
         });
       }
+
+      const tagLine = tagsArray.length > 0
+        ? `\n🏷️ Tags: ${tagsArray.map(t => `#${t}`).join(' ')}`
+        : '';
 
       return NextResponse.json({
         response_type: 'in_channel',
-        text: `✅ *Decision logged by <@${user_id}>:*\n${text}`
+        text: `✅ *Decision logged by <@${user_id}>:*\n${cleanText}${tagLine}`,
       });
     }
 
