@@ -66,20 +66,21 @@ export async function POST(request: Request) {
     if (command === '/decide') {
       const result = await logDecision(text, workspace_id, user_id, [], {});
       if (!result.success) {
-        // Handle Subscription required prompt
-        if (result.requiresUpgrade) {
-          const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opsmem.com';
-          return NextResponse.json({
-            response_type: 'ephemeral',
-            text: `🚨 *Free Plan Limit Reached (25 decisions/month)*\nUpgrade to Pro for unlimited memory: ${siteUrl}/pricing?workspace=${workspace_id}`
-          });
-        }
-        
         return NextResponse.json({
           response_type: 'ephemeral',
           text: `🚨 Error logging decision: ${result.error}`
         });
       }
+
+      // Decision was saved. If over free tier, add a soft upgrade nudge.
+      if (result.requiresUpgrade) {
+        const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opsmem.com';
+        return NextResponse.json({
+          response_type: 'in_channel',
+          text: `✅ *Decision logged by <@${user_id}>:*\n${text}\n\n💡 _Free plan limit reached (25/mo). Upgrade for unlimited: ${siteUrl}/pricing?workspace=${workspace_id}_`
+        });
+      }
+
       return NextResponse.json({
         response_type: 'in_channel',
         text: `✅ *Decision logged by <@${user_id}>:*\n${text}`

@@ -21,61 +21,64 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'dummy_key',
 });
 
-export async function logDecision(text: string, workspaceId: string, userId: string, tags?: string[], context?: Record<string, unknown>) {
+export async function logDecision(
+  text: string,
+  workspaceId: string,
+  userId: string,
+  tags?: string[],
+  context?: Record<string, unknown>
+) {
   try {
     const parsed = logDecisionSchema.safeParse({ text, workspaceId, userId, tags, context });
     if (!parsed.success) {
       return { success: false, error: 'Invalid input parameters.' };
     }
-    
+
     const supabaseAdmin = createAdminClient();
 
-    // 1. Check current month usage
+    // Check free-tier usage. Hard-block at 25/month unless workspace has active subscription.
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const { count, error: countError } = await supabaseAdmin
+    const { count } = await supabaseAdmin
       .from('decisions')
       .select('*', { count: 'exact', head: true })
       .eq('workspace_id', workspaceId)
       .gte('created_at', startOfMonth.toISOString());
 
-    if (countError) throw countError;
-
-    // 2. If usage >= 25, verify active subscription
     if ((count || 0) >= 25) {
       const { data: sub } = await supabaseAdmin
         .from('subscriptions')
         .select('status')
         .eq('workspace_id', workspaceId)
-        // Note: checking 'active' or 'trialing' covers standard paid states
         .in('status', ['active', 'trialing'])
         .maybeSingle();
-      
+
       if (!sub) {
-        return { success: false, requiresUpgrade: true, error: "Free plan limit reached (25 decisions/month). Please upgrade." };
+        // Hard limit reached — do NOT insert.
+        return { success: false, requiresUpgrade: true, error: 'Free plan limit reached (25 decisions/month). Upgrade for unlimited logging.' };
       }
     }
 
+    // Always generate embedding and insert the row.
     const embeddingResponse = await openai.embeddings.create({
       model: 'text-embedding-3-small',
-      input: text,
+      input: parsed.data.text,
     });
     const embedding = embeddingResponse.data[0].embedding;
 
-    const { error: dbError } = await supabaseAdmin
-      .from('decisions')
-      .insert({
-        workspace_id: parsed.data.workspaceId,
-        user_id: parsed.data.userId,
-        text: parsed.data.text,
-        tags: parsed.data.tags || [],
-        context: parsed.data.context || {},
-        embedding,
-      });
+    const { error: dbError } = await supabaseAdmin.from('decisions').insert({
+      workspace_id: parsed.data.workspaceId,
+      user_id: parsed.data.userId,
+      text: parsed.data.text,
+      tags: parsed.data.tags || [],
+      context: parsed.data.context || {},
+      embedding,
+    });
 
-    if (dbError) throw new Error('Database insertion failed');
+    if (dbError) throw new Error('Database insertion failed: ' + dbError.message);
+
     return { success: true };
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
@@ -83,6 +86,58 @@ export async function logDecision(text: string, workspaceId: string, userId: str
   }
 }
 
+// Return current month's decision count and the free plan limit.
+export async function getMonthlyUsage(workspaceId: string) {
+  try {
+    if (!workspaceId) return { success: false, count: 0, limit: 25, isPro: false };
+
+    const supabaseAdmin = createAdminClient();
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count } = await supabaseAdmin
+      .from('decisions')
+      .select('*', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId)
+      .gte('created_at', startOfMonth.toISOString());
+
+    const { data: sub } = await supabaseAdmin
+      .from('subscriptions')
+      .select('status')
+      .eq('workspace_id', workspaceId)
+      .in('status', ['active', 'trialing'])
+      .maybeSingle();
+
+    return { success: true, count: count || 0, limit: 25, isPro: !!sub };
+  } catch {
+    return { success: false, count: 0, limit: 25, isPro: false };
+  }
+}
+
+// Fetch ALL decisions for a workspace, ordered newest → oldest.
+// No semantic threshold — this is the authoritative full history query.
+export async function getAllDecisions(workspaceId: string) {
+  try {
+    if (!workspaceId) return { success: false, error: 'workspaceId required' };
+
+    const supabaseAdmin = createAdminClient();
+    const { data, error } = await supabaseAdmin
+      .from('decisions')
+      .select('id, text, tags, context, created_at')
+      .eq('workspace_id', workspaceId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error('Failed to fetch decisions: ' + error.message);
+
+    return { success: true, data: data || [] };
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    return { success: false, error: errorMsg };
+  }
+}
+
+// Semantic search — used only when user actively types a query.
 export async function searchDecisions(query: string, workspaceId: string) {
   try {
     const parsed = searchDecisionsSchema.safeParse({ query, workspaceId });
@@ -104,9 +159,9 @@ export async function searchDecisions(query: string, workspaceId: string) {
       match_count: 10,
     });
 
-    if (dbError) throw new Error('Database interaction failed');
+    if (dbError) throw new Error('Search failed: ' + dbError.message);
 
-    // Fallback: if primary search returns nothing, fetch closest 3 by raw distance
+    // Fallback: if nothing above threshold, return the 3 closest by raw distance.
     let results = data || [];
     if (results.length === 0) {
       const { data: fallback } = await supabaseAdmin.rpc('match_decisions', {
@@ -118,7 +173,7 @@ export async function searchDecisions(query: string, workspaceId: string) {
       results = fallback || [];
     }
 
-    return { success: true, data: results.slice(0, 3) };
+    return { success: true, data: results };
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     return { success: false, error: errorMsg };

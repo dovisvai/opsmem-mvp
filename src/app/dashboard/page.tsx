@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { logDecision, searchDecisions } from '@/app/actions/decisions';
+import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage } from '@/app/actions/decisions';
 
 export default function DashboardPage() {
   return (
@@ -36,6 +36,9 @@ function DashboardContent() {
   const [isPending, startTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [monthlyCount, setMonthlyCount] = useState(0);
+  const [isPro, setIsPro] = useState(false);
+  const FREE_LIMIT = 25;
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -50,22 +53,37 @@ function DashboardContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
 
-  const performSearch = useCallback(async (query: string = '') => {
+  const loadAll = useCallback(async () => {
     if (!workspaceId) return;
-    const targetQuery = query.trim() || 'team decisions architecture plans strategy';
     startTransition(async () => {
-      const result = await searchDecisions(targetQuery, workspaceId);
-      if (result.success && result.data) {
-        const data = result.data as Decision[];
-        setAllDecisions(data);
-        setIsSearching(!!query.trim());
-      } else {
-        setAllDecisions([]);
+      const [decResult, usageResult] = await Promise.all([
+        getAllDecisions(workspaceId),
+        getMonthlyUsage(workspaceId),
+      ]);
+      if (decResult.success && decResult.data) setAllDecisions(decResult.data as Decision[]);
+      else setAllDecisions([]);
+      if (usageResult.success) {
+        setMonthlyCount(usageResult.count);
+        setIsPro(usageResult.isPro);
       }
+      setIsSearching(false);
     });
   }, [workspaceId]);
 
-  useEffect(() => { performSearch(); }, [performSearch]);
+  const performSearch = useCallback(async (query: string) => {
+    if (!workspaceId) return;
+    startTransition(async () => {
+      const result = await searchDecisions(query, workspaceId);
+      if (result.success && result.data) {
+        setAllDecisions(result.data as Decision[]);
+      } else {
+        setAllDecisions([]);
+      }
+      setIsSearching(true);
+    });
+  }, [workspaceId]);
+
+  useEffect(() => { loadAll(); }, [loadAll]);
 
   // Apply filters + sort
   useEffect(() => {
@@ -94,9 +112,10 @@ function DashboardContent() {
         setNewTags('');
         setShowModal(false);
         setStatusMsg('✓ Decision logged successfully.');
-        setTimeout(() => setStatusMsg(''), 3000);
-        performSearch(searchQuery);
+        setTimeout(() => setStatusMsg(''), 4000);
+        loadAll();
       } else if (result.requiresUpgrade) {
+        setStatusMsg('');
         setShowModal(false);
         router.push(`/pricing?workspace=${workspaceId}`);
       } else {
@@ -188,7 +207,48 @@ function DashboardContent() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-white/20">
           <StatCard label="TOTAL LOGGED" value={allDecisions.length.toString()} />
           <StatCard label="THIS MONTH" value={thisMonthCount.toString()} highlight={thisMonthCount > 0} />
-          <StatCard label="FREE PLAN" value="25 / MO" sub="decisions" />
+
+          {/* Usage meter */}
+          <div className={`p-4 border-r border-white/10 ${!isPro && monthlyCount >= FREE_LIMIT ? 'bg-red-950/30' : monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-950/20' : ''}`}>
+            <div className="text-white/40 text-xs tracking-widest uppercase mb-2">
+              {isPro ? 'PLAN' : 'MONTHLY USAGE'}
+            </div>
+            {isPro ? (
+              <div className="text-white font-black text-sm tracking-wider">PRO — UNLIMITED</div>
+            ) : (
+              <>
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className={`text-2xl font-black tabular-nums ${monthlyCount >= FREE_LIMIT ? 'text-red-400' : monthlyCount >= FREE_LIMIT * 0.8 ? 'text-yellow-400' : 'text-white'}`}>
+                    {monthlyCount}
+                  </span>
+                  <span className="text-white/30 text-sm">/ {FREE_LIMIT}</span>
+                  <span className="text-white/25 text-xs ml-1">this month</span>
+                </div>
+                {/* Progress bar */}
+                <div className="h-1 bg-white/10 w-full mb-2">
+                  <div
+                    className={`h-1 transition-all ${monthlyCount >= FREE_LIMIT ? 'bg-red-400' : monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-400' : 'bg-white/60'}`}
+                    style={{ width: `${Math.min(100, (monthlyCount / FREE_LIMIT) * 100)}%` }}
+                  />
+                </div>
+                {monthlyCount >= FREE_LIMIT ? (
+                  <button
+                    onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
+                    className="text-xs text-red-400 border border-red-400/40 px-2 py-0.5 hover:bg-red-400/10 transition-colors w-full text-center font-mono tracking-wide"
+                  >
+                    LIMIT REACHED — UPGRADE ↑
+                  </button>
+                ) : monthlyCount >= FREE_LIMIT * 0.8 ? (
+                  <button
+                    onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
+                    className="text-xs text-yellow-400/70 border border-yellow-400/20 px-2 py-0.5 hover:bg-yellow-400/10 transition-colors w-full text-center font-mono tracking-wide"
+                  >
+                    {FREE_LIMIT - monthlyCount} left — upgrade ↑
+                  </button>
+                ) : null}
+              </>
+            )}
+          </div>
           <div className="p-4 border-l border-white/10 last:border-r-0">
             <div className="text-white/40 text-xs tracking-widest uppercase mb-2">TOP TAGS</div>
             {topTags.length > 0 ? (
@@ -219,11 +279,11 @@ function DashboardContent() {
               placeholder="&gt; query memory..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && performSearch(searchQuery)}
+              onKeyDown={e => e.key === 'Enter' && searchQuery.trim() && performSearch(searchQuery)}
               className="flex-1 min-w-0 bg-black border border-white/30 focus:border-white outline-none px-3 py-2 text-white text-xs font-mono placeholder:text-white/25 transition-colors"
             />
             <button
-              onClick={() => performSearch(searchQuery)}
+              onClick={() => searchQuery.trim() ? performSearch(searchQuery) : loadAll()}
               disabled={isPending}
               className="px-4 py-2 border border-white text-xs font-black tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-30 uppercase shrink-0"
             >
@@ -231,7 +291,7 @@ function DashboardContent() {
             </button>
             {isSearching && (
               <button
-                onClick={() => { setSearchQuery(''); setIsSearching(false); performSearch(''); }}
+                onClick={() => { setSearchQuery(''); loadAll(); }}
                 className="px-3 py-2 border border-white/30 text-white/50 text-xs hover:border-white/60 hover:text-white transition-all shrink-0"
               >
                 ✕
