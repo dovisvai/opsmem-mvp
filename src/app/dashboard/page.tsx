@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect, useCallback, Suspense } from 'react
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage } from '@/app/actions/decisions';
+import { getWorkspaceMembers, createInvite, WorkspaceMember } from '@/app/actions/team';
 
 export default function DashboardPage() {
   return (
@@ -47,6 +48,13 @@ function DashboardContent() {
   const [statusMsg, setStatusMsg] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Team modal state
+  const [showTeam, setShowTeam] = useState(false);
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [inviteUrl, setInviteUrl] = useState('');
+  const [inviteCopied, setInviteCopied] = useState(false);
+  const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
+
   // Filters
   const [tagFilter, setTagFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
@@ -56,9 +64,10 @@ function DashboardContent() {
   const loadAll = useCallback(async () => {
     if (!workspaceId) return;
     startTransition(async () => {
-      const [decResult, usageResult] = await Promise.all([
+      const [decResult, usageResult, teamResult] = await Promise.all([
         getAllDecisions(workspaceId),
         getMonthlyUsage(workspaceId),
+        getWorkspaceMembers(workspaceId),
       ]);
       if (decResult.success && decResult.data) setAllDecisions(decResult.data as Decision[]);
       else setAllDecisions([]);
@@ -66,6 +75,7 @@ function DashboardContent() {
         setMonthlyCount(usageResult.count);
         setIsPro(usageResult.isPro);
       }
+      if (teamResult.success) setMembers(teamResult.data);
       setIsSearching(false);
     });
   }, [workspaceId]);
@@ -191,6 +201,12 @@ function DashboardContent() {
             className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block"
           >
             ↑ PRO
+          </button>
+          <button
+            onClick={() => setShowTeam(true)}
+            className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block"
+          >
+            TEAM {members.filter(m => m.accepted_at).length > 0 ? `(${members.filter(m => m.accepted_at).length})` : ''}
           </button>
           <button
             onClick={() => router.push('/')}
@@ -503,6 +519,107 @@ function DashboardContent() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── TEAM MODAL ── */}
+      {showTeam && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-black border-2 border-white w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div className="border-b border-white/20 px-6 py-4 flex items-center justify-between shrink-0">
+              <h2 className="font-black tracking-widest uppercase text-sm">[ YOUR TEAM ]</h2>
+              <button onClick={() => { setShowTeam(false); setInviteUrl(''); setInviteCopied(false); }}
+                className="text-white/40 hover:text-white text-lg transition-colors">×</button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Member list */}
+              <div>
+                <div className="text-white/40 text-xs tracking-widest uppercase mb-3">
+                  MEMBERS ({members.filter(m => m.accepted_at).length} active · {members.filter(m => !m.accepted_at).length} pending)
+                </div>
+                <div className="space-y-2">
+                  {members.length === 0 ? (
+                    <div className="text-white/25 text-xs py-4 text-center border border-white/10">
+                      No members yet. Generate an invite link to add teammates.
+                    </div>
+                  ) : members.map(m => (
+                    <div key={m.id} className="flex items-center justify-between px-3 py-2 border border-white/10 hover:border-white/20 transition-colors">
+                      <div>
+                        <div className="text-white text-xs font-mono">
+                          {m.user_name || m.user_email || <span className="text-white/30 italic">pending invite</span>}
+                        </div>
+                        {m.user_email && m.user_name && (
+                          <div className="text-white/30 text-xs">{m.user_email}</div>
+                        )}
+                        {m.invited_by && (
+                          <div className="text-white/20 text-xs">invited by {m.invited_by}</div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs px-1.5 border font-mono ${
+                          m.role === 'admin'
+                            ? 'border-white/40 text-white/60'
+                            : 'border-white/15 text-white/30'
+                        }`}>{m.role}</span>
+                        {m.accepted_at ? (
+                          <span className="text-green-400 text-xs">✓</span>
+                        ) : (
+                          <span className="text-yellow-400/60 text-xs">pending</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Invite link generator */}
+              <div className="border-t border-white/10 pt-6">
+                <div className="text-white/40 text-xs tracking-widest uppercase mb-3">INVITE A TEAMMATE</div>
+                <p className="text-white/30 text-xs mb-4 leading-relaxed">
+                  Generate a shareable invite link. Anyone with the link can join this workspace.
+                </p>
+                {!inviteUrl ? (
+                  <button
+                    onClick={async () => {
+                      setIsGeneratingInvite(true);
+                      const result = await createInvite(workspaceId!, 'web-dashboard');
+                      if (result.success && result.inviteUrl) {
+                        setInviteUrl(result.inviteUrl);
+                      }
+                      setIsGeneratingInvite(false);
+                    }}
+                    disabled={isGeneratingInvite}
+                    className="w-full py-3 border-2 border-white text-white font-black text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-all disabled:opacity-30"
+                  >
+                    {isGeneratingInvite ? 'GENERATING...' : '[ GENERATE INVITE LINK ]'}
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="border border-white/30 px-3 py-2 flex items-center gap-2">
+                      <code className="flex-1 text-xs text-white/70 font-mono truncate">{inviteUrl}</code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(inviteUrl);
+                          setInviteCopied(true);
+                          setTimeout(() => setInviteCopied(false), 2000);
+                        }}
+                        className="text-xs border border-white/30 px-2 py-1 hover:border-white/60 hover:text-white text-white/50 transition-all shrink-0 font-mono"
+                      >
+                        {inviteCopied ? '✓ COPIED' : 'COPY'}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => { setInviteUrl(''); setInviteCopied(false); }}
+                      className="text-xs text-white/25 hover:text-white/50 transition-colors"
+                    >
+                      Generate another ↺
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
