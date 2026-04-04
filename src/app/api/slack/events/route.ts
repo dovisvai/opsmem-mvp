@@ -63,6 +63,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ text: 'Missing workspace or user context from Slack.' });
     }
 
+    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opsmem.com';
+
+    // Reusable Block Kit "Open Dashboard" button
+    const dashboardButton = {
+      type: 'actions',
+      elements: [{
+        type: 'button',
+        text: { type: 'plain_text', text: '📊 Open Dashboard', emoji: true },
+        style: 'primary',
+        url: `${siteUrl}/dashboard?workspace=${workspace_id}`,
+        action_id: 'open_dashboard',
+      }],
+    };
+
     if (command === '/decide') {
       // Extract #hashtags from anywhere in the message
       const hashtagRegex = /#([\w-]+)/g;
@@ -97,7 +111,16 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         response_type: 'in_channel',
-        text: `✅ *Decision logged by <@${user_id}>:*\n${cleanText}${tagLine}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `✅ *Decision logged by <@${user_id}>:*\n${cleanText}${tagLine}`,
+            },
+          },
+          dashboardButton,
+        ],
       });
     }
 
@@ -139,6 +162,8 @@ export async function POST(request: Request) {
           }
         });
       });
+
+      blocks.push(dashboardButton);
 
       return NextResponse.json({ response_type: 'in_channel', blocks });
     }
