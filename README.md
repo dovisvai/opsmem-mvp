@@ -68,37 +68,104 @@ The `src/app/actions/decisions.ts` file now contains the dual Server Actions whi
 ### Step: Update the Subscriptions schema
 If you plan to utilize Stripe, please run `supabase/migrations/0003_create_subscriptions_table.sql` in the Supabase Dashboard to enable the webhook synchronization.
 
+---
+
+## Stripe Setup Guide
+
+OpsMem uses Stripe for the **$19/month Pro** subscription. The integration supports both **test mode** and **live mode** automatically — just swap in the corresponding keys.
+
+### Required Environment Variables
+
+| Variable | Where to find it | Example value |
+|---|---|---|
+| `STRIPE_SECRET_KEY` | Stripe Dashboard → Developers → API Keys | `sk_test_...` or `sk_live_...` |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard → Developers → API Keys | `pk_test_...` or `pk_live_...` |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Developers → Webhooks (after adding endpoint) | `whsec_...` |
+| `STRIPE_PRO_PRICE_ID` | Stripe Dashboard → Products → your Pro product → Price | `price_...` |
+
+> **Test vs Live mode**: Use `sk_test_` / `pk_test_` keys during development and `sk_live_` / `pk_live_` for production. The `STRIPE_PRO_PRICE_ID` is different per mode — make sure you copy the correct one.
+
+### Step 1 — Create the Pro Product
+
+1. Go to [dashboard.stripe.com/products](https://dashboard.stripe.com/products) and click **+ Add Product**.
+2. Set the name to **OpsMem Pro**, price to **$19.00 USD**, billing period **Monthly**.
+3. Click **Save Product**.
+4. On the product page, copy the **Price ID** (`price_...`) and save it as `STRIPE_PRO_PRICE_ID` in your `.env.local`.
+
+### Step 2 — Add API Keys
+
+1. Go to [dashboard.stripe.com/apikeys](https://dashboard.stripe.com/apikeys).
+2. Copy the **Publishable key** → save as `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+3. Reveal and copy the **Secret key** → save as `STRIPE_SECRET_KEY`.
+
+### Step 3 — Configure Webhooks
+
+#### Local development (Stripe CLI)
+```bash
+# Install Stripe CLI: https://stripe.com/docs/stripe-cli
+stripe login
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+# Copy the whsec_... secret printed by the CLI → STRIPE_WEBHOOK_SECRET
+```
+
+#### Production (Vercel)
+1. Go to [dashboard.stripe.com/webhooks](https://dashboard.stripe.com/webhooks) → **Add endpoint**.
+2. Set the **Endpoint URL** to `https://<your-vercel-domain>/api/stripe/webhook`.
+3. Under **Events to send**, select:
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+4. Click **Add endpoint**, then **Reveal signing secret** → copy `whsec_...` → save as `STRIPE_WEBHOOK_SECRET`.
+
+### Step 4 — Test the Checkout Flow
+
+1. With the dev server running (`npm run dev`), open:
+   ```
+   http://localhost:3000/pricing?workspace=T12345
+   ```
+2. Click **[ UPGRADE NOW ]** — you should be redirected to a Stripe Checkout page.
+3. Use Stripe test card `4242 4242 4242 4242` (any future date, any CVC) to complete payment.
+4. After success, you'll be redirected to `/dashboard?workspace=T12345&checkout=success`.
+5. Verify the subscription was written to Supabase: check the `subscriptions` table in your Supabase dashboard.
+
+### Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `Missing required env var: STRIPE_SECRET_KEY` | Key not set | Add `STRIPE_SECRET_KEY` to `.env.local` and restart the dev server |
+| `Missing required env var: STRIPE_PRO_PRICE_ID` | Price ID not set | Add `STRIPE_PRO_PRICE_ID` to `.env.local` |
+| Webhook signature verification failed | Wrong `STRIPE_WEBHOOK_SECRET` | Make sure you're using the webhook signing secret, not the API secret key |
+| Checkout session created but subscription not in DB | Webhook not forwarded | Run `stripe listen --forward-to localhost:3000/api/stripe/webhook` locally |
+
+---
+
 ## Deployment Guide (Vercel)
 
 Deploying OpsMem to production takes just a few clicks thanks to Vercel and Supabase.
 
-1. **Deploy to Vercel (One-Click)**
-   - Push your code to a GitHub repository.
-   - Go to [Vercel](https://vercel.com) and select *Import Project*.
-   - Select your repository and leave the framework preset as **Next.js**.
+1. **Deploy to Vercel** — Push your code to GitHub, then go to [vercel.com](https://vercel.com) → Import Project → select your repo (framework preset: **Next.js**).
 
-2. **Add Environment Variables in Vercel**
-   During deployment (or afterwards in **Settings > Environment Variables**), copy all the variable names from your `.env.local` to Vercel. Crucially, fill out:
+2. **Add Environment Variables** — In Vercel **Settings → Environment Variables**, add all vars from your `.env.local`:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `OPENAI_API_KEY`
    - `SLACK_BOT_TOKEN`
+   - `SLACK_SIGNING_SECRET`
    - `STRIPE_SECRET_KEY`
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
    - `STRIPE_WEBHOOK_SECRET`
-   - `STRIPE_PRICE_ID_PRO` (Your $19 product price_ string)
+   - `STRIPE_PRO_PRICE_ID` ← your `price_...` string from Stripe
+   - `NEXT_PUBLIC_APP_URL` ← your production URL
 
-3. **Set Up Stripe Webhook**
-   - Go to the Stripe Developer Dashboard -> Webhooks.
-   - Add a new endpoint pointing to `https://your-vercel-domain.vercel.app/api/stripe/webhook`
-   - Select the events: `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`.
-   - Reveal the webhook signing secret and save it to Vercel as `STRIPE_WEBHOOK_SECRET`.
+3. **Set Up Stripe Webhook** — Follow [Step 3 in the Stripe Setup Guide](#step-3--configure-webhooks) above, using your Vercel domain.
 
-4. **Final Launch Checklist**
-   - Did you add your Vercel URL to the Slack App's Request URL configuration for interactivity?
-   - Is Supabase RLS migrations complete?
-   - Are your environment variables fully populated in Vercel?
-   - Try logging a decision through Slack and finding it in your new Dashboard!
+### Final Launch Checklist
+- [ ] Supabase migrations run (all three SQL files)
+- [ ] All environment variables set in Vercel
+- [ ] Stripe webhook endpoint pointing to your Vercel URL
+- [ ] Slack slash commands pointing to your Vercel URL
+- [ ] Test checkout with Stripe test card `4242 4242 4242 4242`
 
 ## Production Security Checklist
 

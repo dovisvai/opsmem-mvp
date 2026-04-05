@@ -2,15 +2,29 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-  apiVersion: '2026-03-25.dahlia', // Exact version from recent NPM release
-});
+// Both secrets are required — throw at cold-start so a misconfigured deploy
+// surfaces immediately rather than failing silently on every webhook call.
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY as string;
+if (!stripeSecretKey) {
+  throw new Error('Missing required env var: STRIPE_SECRET_KEY');
+}
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_placeholder';
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+if (!webhookSecret) {
+  throw new Error('Missing required env var: STRIPE_WEBHOOK_SECRET');
+}
+
+const stripe = new Stripe(stripeSecretKey, {
+  apiVersion: '2026-03-25.dahlia',
+});
 
 export async function POST(req: Request) {
   const payload = await req.text();
-  const signature = req.headers.get('stripe-signature') as string;
+  const signature = req.headers.get('stripe-signature');
+
+  if (!signature) {
+    return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 });
+  }
 
   let event: Stripe.Event;
 
