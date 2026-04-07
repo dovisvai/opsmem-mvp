@@ -104,14 +104,23 @@ export async function getMonthlyUsage(workspaceId: string) {
 
     const { data: sub } = await supabaseAdmin
       .from('subscriptions')
-      .select('status')
+      .select('status, price_id')
       .eq('workspace_id', workspaceId)
       .in('status', ['active', 'trialing'])
       .maybeSingle();
 
-    return { success: true, count: count || 0, limit: 25, isPro: !!sub };
+    let tier: 'free' | 'pro' | 'business' = 'free';
+    if (sub) {
+      if (sub.price_id === process.env.STRIPE_BUSINESS_PRICE_ID) {
+        tier = 'business';
+      } else {
+        tier = 'pro'; // default any other active sub to pro to be safe
+      }
+    }
+
+    return { success: true, count: count || 0, limit: 25, isPro: tier !== 'free', tier };
   } catch {
-    return { success: false, count: 0, limit: 25, isPro: false };
+    return { success: false, count: 0, limit: 25, isPro: false, tier: 'free' };
   }
 }
 

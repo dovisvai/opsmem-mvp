@@ -39,6 +39,7 @@ function DashboardContent() {
   const [isSearching, setIsSearching] = useState(false);
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [isPro, setIsPro] = useState(false);
+  const [tier, setTier] = useState<'free' | 'pro' | 'business'>('free');
   const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
   const FREE_LIMIT = 25;
 
@@ -75,6 +76,7 @@ function DashboardContent() {
       if (usageResult.success) {
         setMonthlyCount(usageResult.count);
         setIsPro(usageResult.isPro);
+        setTier((usageResult.tier as 'free' | 'pro' | 'business') || 'free');
       }
       if (teamResult.success) setMembers(teamResult.data);
       setIsSearching(false);
@@ -90,6 +92,7 @@ function DashboardContent() {
       if (usageResult.success) {
         setMonthlyCount(usageResult.count);
         setIsPro(usageResult.isPro);
+        setTier((usageResult.tier as 'free' | 'pro' | 'business') || 'free');
       }
     } finally {
       setIsRefreshingPlan(false);
@@ -215,7 +218,7 @@ function DashboardContent() {
           {isPro ? (
             <>
               <span className="px-3 py-1.5 border border-white/40 bg-white text-black text-xs font-black tracking-widest uppercase hidden sm:inline-flex items-center gap-1">
-                ∞ PRO
+                ∞ {tier === 'business' ? 'BUSINESS' : 'PRO'}
               </span>
               <button
                 onClick={refreshPlan}

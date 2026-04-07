@@ -3,7 +3,7 @@
 import Stripe from 'stripe';
 import { headers } from 'next/headers';
 
-export async function createCheckoutSession(workspaceId: string) {
+export async function createCheckoutSession(workspaceId: string, tier: 'pro' | 'business' = 'pro') {
   try {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
@@ -19,12 +19,13 @@ export async function createCheckoutSession(workspaceId: string) {
       process.env.NEXT_PUBLIC_APP_URL ||
       'https://opsmem.com';
 
-    // STRIPE_PRO_PRICE_ID is the price_ string from your Stripe dashboard
-    // for the $19/month Pro subscription product.
-    // Works in both test mode (price_test_...) and live mode (price_live_...).
-    const priceId = process.env.STRIPE_PRO_PRICE_ID;
-    if (!priceId) {
-      throw new Error('Missing required env var: STRIPE_PRO_PRICE_ID');
+    let priceId = '';
+    if (tier === 'pro') {
+      priceId = process.env.STRIPE_PRO_PRICE_ID || '';
+      if (!priceId) throw new Error('Missing required env var: STRIPE_PRO_PRICE_ID');
+    } else if (tier === 'business') {
+      priceId = process.env.STRIPE_BUSINESS_PRICE_ID || '';
+      if (!priceId) throw new Error('Missing required env var: STRIPE_BUSINESS_PRICE_ID');
     }
 
     const session = await stripe.checkout.sessions.create({
