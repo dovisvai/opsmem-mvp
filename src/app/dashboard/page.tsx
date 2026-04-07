@@ -215,7 +215,7 @@ function DashboardContent() {
               {statusMsg}
             </span>
           )}
-          {isPro ? (
+          {tier !== 'free' ? (
             <>
               <span className="px-3 py-1.5 border border-white/40 bg-white text-black text-xs font-black tracking-widest uppercase hidden sm:inline-flex items-center gap-1">
                 ∞ {tier === 'business' ? 'BUSINESS' : 'PRO'}
@@ -260,11 +260,11 @@ function DashboardContent() {
           <StatCard label="THIS MONTH" value={thisMonthCount.toString()} highlight={thisMonthCount > 0} />
 
           {/* Usage meter */}
-          <div className={`p-4 border-r border-white/10 ${!isPro && monthlyCount >= FREE_LIMIT ? 'bg-red-950/30' : !isPro && monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-950/20' : ''}`}>
+          <div className={`p-4 border-r border-white/10 ${tier === 'free' && monthlyCount >= FREE_LIMIT ? 'bg-red-950/30' : tier === 'free' && monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-950/20' : ''}`}>
             <div className="text-white/40 text-xs tracking-widest uppercase mb-2">
-              {isPro ? 'PLAN' : 'MONTHLY USAGE'}
+              {tier !== 'free' ? 'PLAN' : 'MONTHLY USAGE'}
             </div>
-            {isPro ? (
+            {tier !== 'free' ? (
               <div className="space-y-1">
                 <div className="text-3xl font-black text-white">∞</div>
                 <div className="text-white/50 text-xs tracking-widest uppercase">Unlimited</div>
