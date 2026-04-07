@@ -39,6 +39,7 @@ function DashboardContent() {
   const [isSearching, setIsSearching] = useState(false);
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [isPro, setIsPro] = useState(false);
+  const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
   const FREE_LIMIT = 25;
 
   // Modal state
@@ -78,6 +79,21 @@ function DashboardContent() {
       if (teamResult.success) setMembers(teamResult.data);
       setIsSearching(false);
     });
+  }, [workspaceId]);
+
+  // Lightweight plan-only refresh — no full page reload needed after checkout.
+  const refreshPlan = useCallback(async () => {
+    if (!workspaceId) return;
+    setIsRefreshingPlan(true);
+    try {
+      const usageResult = await getMonthlyUsage(workspaceId);
+      if (usageResult.success) {
+        setMonthlyCount(usageResult.count);
+        setIsPro(usageResult.isPro);
+      }
+    } finally {
+      setIsRefreshingPlan(false);
+    }
   }, [workspaceId]);
 
   const performSearch = useCallback(async (query: string) => {
@@ -196,12 +212,28 @@ function DashboardContent() {
               {statusMsg}
             </span>
           )}
-          <button
-            onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
-            className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block"
-          >
-            ↑ PRO
-          </button>
+          {isPro ? (
+            <>
+              <span className="px-3 py-1.5 border border-white/40 bg-white text-black text-xs font-black tracking-widest uppercase hidden sm:inline-flex items-center gap-1">
+                ∞ PRO
+              </span>
+              <button
+                onClick={refreshPlan}
+                disabled={isRefreshingPlan}
+                title="Refresh plan status"
+                className="px-3 py-1.5 border border-white/20 text-white/40 text-xs font-black tracking-widest hover:border-white/50 hover:text-white/70 transition-all uppercase hidden sm:block disabled:opacity-30"
+              >
+                {isRefreshingPlan ? '...' : '↺'}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
+              className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block"
+            >
+              ↑ PRO
+            </button>
+          )}
           <button
             onClick={() => setShowTeam(true)}
             className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block"
@@ -225,12 +257,15 @@ function DashboardContent() {
           <StatCard label="THIS MONTH" value={thisMonthCount.toString()} highlight={thisMonthCount > 0} />
 
           {/* Usage meter */}
-          <div className={`p-4 border-r border-white/10 ${!isPro && monthlyCount >= FREE_LIMIT ? 'bg-red-950/30' : monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-950/20' : ''}`}>
+          <div className={`p-4 border-r border-white/10 ${!isPro && monthlyCount >= FREE_LIMIT ? 'bg-red-950/30' : !isPro && monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-950/20' : ''}`}>
             <div className="text-white/40 text-xs tracking-widest uppercase mb-2">
               {isPro ? 'PLAN' : 'MONTHLY USAGE'}
             </div>
             {isPro ? (
-              <div className="text-white font-black text-sm tracking-wider">PRO — UNLIMITED</div>
+              <div className="space-y-1">
+                <div className="text-3xl font-black text-white">∞</div>
+                <div className="text-white/50 text-xs tracking-widest uppercase">Unlimited</div>
+              </div>
             ) : (
               <>
                 <div className="flex items-baseline gap-1 mb-2">

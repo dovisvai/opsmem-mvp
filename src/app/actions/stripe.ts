@@ -3,20 +3,17 @@
 import Stripe from 'stripe';
 import { headers } from 'next/headers';
 
-// Stripe is initialised once per serverless cold start.
-// Both keys are required — the server will throw early if they are missing
-// so a misconfigured deploy fails loudly rather than creating broken sessions.
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-if (!stripeSecretKey) {
-  throw new Error('Missing required env var: STRIPE_SECRET_KEY');
-}
-
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2026-03-25.dahlia',
-});
-
 export async function createCheckoutSession(workspaceId: string) {
   try {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      throw new Error('Missing required env var: STRIPE_SECRET_KEY');
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2026-03-25.dahlia',
+    });
+
     const origin =
       (await headers()).get('origin') ||
       process.env.NEXT_PUBLIC_APP_URL ||

@@ -2,23 +2,21 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/server';
 
-// Both secrets are required — throw at cold-start so a misconfigured deploy
-// surfaces immediately rather than failing silently on every webhook call.
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY as string;
-if (!stripeSecretKey) {
-  throw new Error('Missing required env var: STRIPE_SECRET_KEY');
-}
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
-if (!webhookSecret) {
-  throw new Error('Missing required env var: STRIPE_WEBHOOK_SECRET');
-}
-
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2026-03-25.dahlia',
-});
-
 export async function POST(req: Request) {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) {
+    throw new Error('Missing required env var: STRIPE_SECRET_KEY');
+  }
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    throw new Error('Missing required env var: STRIPE_WEBHOOK_SECRET');
+  }
+
+  const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: '2026-03-25.dahlia',
+  });
+
   const payload = await req.text();
   const signature = req.headers.get('stripe-signature');
 
@@ -38,32 +36,69 @@ export async function POST(req: Request) {
   const supabaseAdmin = createAdminClient();
 
   try {
-    if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
+    // ─── PRIMARY SYNC PATH ───────────────────────────────────────────────────
+    // checkout.session.completed fires immediately after successful payment.
+    // This is what makes the dashboard show PRO right after redirect.
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const workspaceId = session.metadata?.workspace_id;
+      const stripeSubscriptionId = session.subscription as string | null;
+
+      console.log(`💳 checkout.session.completed — workspace=${workspaceId} sub=${stripeSubscriptionId}`);
+
+      if (workspaceId && stripeSubscriptionId) {
+        // Fetch the full subscription so we have period end + price info
+        const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+
+        await supabaseAdmin.from('subscriptions').upsert({
+          id: subscription.id,
+          workspace_id: workspaceId,
+          status: subscription.status,
+          price_id: subscription.items.data[0]?.price?.id ?? null,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          current_period_end: new Date(((subscription as unknown as any).current_period_end as number) * 1000).toISOString(),
+        }, { onConflict: 'id' });
+
+        console.log(`✅ Subscription ${subscription.id} upserted for workspace ${workspaceId} (status: ${subscription.status})`);
+      } else {
+        console.warn('⚠️ checkout.session.completed missing workspace_id or subscription id', { workspaceId, stripeSubscriptionId });
+      }
+    }
+
+    // ─── SUPPLEMENTAL SYNC (renewals, plan changes, cancellations) ──────────
+    else if (
+      event.type === 'customer.subscription.created' ||
+      event.type === 'customer.subscription.updated'
+    ) {
       const subscription = event.data.object as Stripe.Subscription;
-      const workspaceId = subscription.metadata.workspace_id;
-      
+      const workspaceId = subscription.metadata?.workspace_id;
+
       if (workspaceId) {
         await supabaseAdmin.from('subscriptions').upsert({
           id: subscription.id,
           workspace_id: workspaceId,
           status: subscription.status,
-          price_id: subscription.items.data[0].price.id,
+          price_id: subscription.items.data[0]?.price?.id ?? null,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          current_period_end: new Date((((subscription as unknown as any).current_period_end as number) || Date.now() / 1000) * 1000).toISOString(),
-        });
-        console.log(`✅ Upserted subscription ${subscription.id} for workspace ${workspaceId}`);
+          current_period_end: new Date(((subscription as unknown as any).current_period_end as number) * 1000).toISOString(),
+        }, { onConflict: 'id' });
+
+        console.log(`✅ Sub ${subscription.id} synced for workspace ${workspaceId} (status: ${subscription.status})`);
       }
-    } else if (event.type === 'customer.subscription.deleted') {
+    }
+
+    else if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object as Stripe.Subscription;
-      await supabaseAdmin.from('subscriptions')
+      await supabaseAdmin
+        .from('subscriptions')
         .update({ status: 'canceled' })
         .eq('id', subscription.id);
-      console.log(`❌ Canceled subscription ${subscription.id}`);
+      console.log(`❌ Subscription ${subscription.id} marked canceled`);
     }
-    
+
     return NextResponse.json({ received: true });
   } catch (error: unknown) {
-    console.error('Error handling webhook DB write:', error);
-    return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
+    console.error('Error handling webhook event:', error);
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }
