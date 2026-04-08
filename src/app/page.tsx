@@ -12,7 +12,18 @@ export default function Home() {
 
       {/* Nav */}
       <nav className="border-b border-white/20 px-8 py-4 flex items-center justify-between">
-        <span className="text-white font-bold text-sm tracking-widest uppercase">[ OPSMEM ]</span>
+        <div className="flex items-center gap-3">
+          <Image
+            src="/opsmem-logo.png"
+            alt="OpsMem Logo"
+            width={24}
+            height={24}
+            className="border border-white/50 p-0.5"
+            style={{ imageRendering: 'pixelated' }}
+            priority
+          />
+          <span className="text-white font-bold text-sm tracking-widest uppercase">[ OPSMEM ]</span>
+        </div>
         <div className="flex gap-6 text-xs tracking-widest text-white/60">
           <Link href="/dashboard" className="hover:text-white transition-colors uppercase">Dashboard</Link>
           <Link href="/pricing" className="hover:text-white transition-colors uppercase">Pricing</Link>
