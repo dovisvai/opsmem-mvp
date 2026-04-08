@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage } from '@/app/actions/decisions';
 import { getWorkspaceMembers, createInvite, WorkspaceMember } from '@/app/actions/team';
+import { createCustomerPortalSession } from '@/app/actions/stripe';
 
 export default function DashboardPage() {
   return (
@@ -43,6 +44,7 @@ function DashboardContent() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rawSub, setRawSub] = useState<any>(null);
   const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
+  const [isManagingPlan, setIsManagingPlan] = useState(false);
   const FREE_LIMIT = 25;
 
   // Modal state
@@ -115,6 +117,20 @@ function DashboardContent() {
       setIsSearching(true);
     });
   }, [workspaceId]);
+
+  const handleManagePlan = async () => {
+    if (!workspaceId) return;
+    setIsManagingPlan(true);
+    setStatusMsg('CONNECTING TO STRIPE...');
+    const result = await createCustomerPortalSession(workspaceId);
+    if (result.error) {
+      console.error(result.error);
+      setStatusMsg(`ERROR: ${result.error}`);
+      setIsManagingPlan(false);
+    } else if (result.url) {
+      window.location.href = result.url;
+    }
+  };
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -231,6 +247,13 @@ function DashboardContent() {
                 className="px-3 py-1.5 border border-white/20 text-white/40 text-xs font-black tracking-widest hover:border-white/50 hover:text-white/70 transition-all uppercase hidden sm:block disabled:opacity-30"
               >
                 {isRefreshingPlan ? '...' : '↺'}
+              </button>
+              <button
+                onClick={handleManagePlan}
+                disabled={isManagingPlan}
+                className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block disabled:opacity-30"
+              >
+                {isManagingPlan ? 'LOADING...' : 'MANAGE SUB'}
               </button>
             </>
           ) : (
