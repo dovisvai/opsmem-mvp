@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { logDecision, searchDecisions } from '@/app/actions/decisions';
+import { logDecision, searchDecisions, getMonthlyUsage } from '@/app/actions/decisions';
 
 import crypto from 'crypto';
 
@@ -91,12 +91,30 @@ export async function POST(request: Request) {
       }
 
       const result = await logDecision(cleanText, workspace_id, user_id, tagsArray, {});
+      const upgradeUrl = `${siteUrl}/pricing?workspace=${workspace_id}`;
+
+      const upgradeButtonAction = {
+        type: 'actions',
+        elements: [{
+          type: 'button',
+          text: { type: 'plain_text', text: 'Upgrade Now', emoji: true },
+          style: 'primary',
+          url: upgradeUrl,
+          action_id: 'upgrade_now',
+        }],
+      };
+
       if (!result.success) {
         if (result.requiresUpgrade) {
-          const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opsmem.com';
           return NextResponse.json({
             response_type: 'ephemeral',
-            text: `🚨 *Free Plan Limit Reached (25 decisions/month)*\nUpgrade to Pro for unlimited logging: ${siteUrl}/pricing?workspace=${workspace_id}`,
+            blocks: [
+              {
+                type: 'section',
+                text: { type: 'mrkdwn', text: `🚨 Free plan limit reached (25/25). No more decisions can be logged this month. Upgrade to Pro or Business for unlimited logging.` }
+              },
+              upgradeButtonAction
+            ]
           });
         }
         return NextResponse.json({
@@ -105,22 +123,44 @@ export async function POST(request: Request) {
         });
       }
 
+      // Check current quota metrics for Free users
+      const usage = await getMonthlyUsage(workspace_id);
+      
       const tagLine = tagsArray.length > 0
         ? `\n🏷️ Tags: ${tagsArray.map(t => `#${t}`).join(' ')}`
         : '';
 
+      const baseBlocks = [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `✅ *Decision logged by <@${user_id}>:*\n${cleanText}${tagLine}`,
+          },
+        },
+        dashboardButton,
+      ];
+
+      if (usage.success && usage.tier === 'free') {
+        if (usage.count === 15) {
+          baseBlocks.push({
+            type: 'section',
+            text: { type: 'mrkdwn', text: `⚠️ You're at 15/25 Free decisions this month. Upgrade anytime for unlimited logging.` }
+          });
+          baseBlocks.push(upgradeButtonAction);
+        } else if (usage.count === 20) {
+          baseBlocks.push({
+            type: 'section',
+            text: { type: 'mrkdwn', text: `⚠️ You're at 20/25 Free decisions this month. Consider upgrading soon for unlimited access.` }
+          });
+          baseBlocks.push(upgradeButtonAction);
+        }
+        // At exactly 25 or more, the next call will reject entirely via logDecision's limit.
+      }
+
       return NextResponse.json({
         response_type: 'in_channel',
-        blocks: [
-          {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: `✅ *Decision logged by <@${user_id}>:*\n${cleanText}${tagLine}`,
-            },
-          },
-          dashboardButton,
-        ],
+        blocks: baseBlocks,
       });
     }
 
