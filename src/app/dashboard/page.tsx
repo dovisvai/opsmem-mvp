@@ -219,7 +219,7 @@ function DashboardContent() {
               {statusMsg}
             </span>
           )}
-          {tier !== 'free' ? (
+          {tier !== 'free' && rawSub?.status === 'active' ? (
             <>
               <span className="px-3 py-1.5 border border-white/40 bg-white text-black text-xs font-black tracking-widest uppercase hidden sm:inline-flex items-center gap-1">
                 ∞ {tier === 'business' ? 'BUSINESS' : 'PRO'}
@@ -237,8 +237,9 @@ function DashboardContent() {
             <button
               onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
               className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block"
+              title="Upgrade your plan"
             >
-              ↑ PRO
+              FREE PLAN ↑
             </button>
           )}
           <button
@@ -257,16 +258,6 @@ function DashboardContent() {
       </header>
 
       <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
-
-        {/* ── DEBUG PANEL (TEMPORARY) ── */}
-        <div className="p-4 border border-dashed border-red-500/50 bg-red-950/20 font-mono text-xs text-red-200 uppercase tracking-widest break-all">
-          <div className="mb-2 text-red-400 font-black">⚙️ DEBUG PANEL — SUBSCRIPTION SYNC ⚙️</div>
-          <div>Workspace ID: {workspaceId || 'none'}</div>
-          <div>Computed Tier: {tier}</div>
-          <div className="mt-2 text-white/50 lowercase whitespace-pre-wrap">
-            {rawSub ? `Subscription data: ${JSON.stringify({ ...rawSub, tier }, null, 2)}` : 'No subscription row found in Supabase.'}
-          </div>
-        </div>
 
         {/* ── STATS CARDS ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-white/20">
