@@ -125,11 +125,11 @@ export async function POST(req: Request) {
           console.error('❌ ERROR converting current_period_end in customer.subscription.*:', dateErr, (subscription as any).current_period_end);
         }
 
-        if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+        if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired' || subscription.cancel_at_period_end) {
           await supabaseAdmin.from('subscriptions')
             .delete()
             .eq('stripe_subscription_id', subscription.id);
-          console.error(`❌ Sub ${subscription.id} updated to ${subscription.status}; DELETED row for workspace ${workspaceId} to lock Free limits.`);
+          console.error(`❌ Sub ${subscription.id} status=${subscription.status} | cancel_at_period_end=${subscription.cancel_at_period_end}; DELETED row for workspace ${workspaceId} to eagerly lock Free limits.`);
         } else {
           await supabaseAdmin.from('subscriptions').upsert({
             stripe_subscription_id: subscription.id,
