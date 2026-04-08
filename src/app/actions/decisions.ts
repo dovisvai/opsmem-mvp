@@ -118,9 +118,9 @@ export async function getMonthlyUsage(workspaceId: string) {
       }
     }
 
-    return { success: true, count: count || 0, limit: 25, isPro: tier !== 'free', tier };
+    return { success: true, count: count || 0, limit: 25, isPro: tier !== 'free', tier, rawSub: sub };
   } catch {
-    return { success: false, count: 0, limit: 25, isPro: false, tier: 'free' };
+    return { success: false, count: 0, limit: 25, isPro: false, tier: 'free', rawSub: null };
   }
 }
 

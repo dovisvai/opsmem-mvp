@@ -71,7 +71,17 @@ export async function POST(req: Request) {
       event.type === 'customer.subscription.updated'
     ) {
       const subscription = event.data.object as Stripe.Subscription;
-      const workspaceId = subscription.metadata?.workspace_id;
+      let workspaceId = subscription.metadata?.workspace_id;
+
+      if (!workspaceId) {
+        // Fallback: fetch from DB if older subscription lacks metadata
+        const { data: existingSub } = await supabaseAdmin
+          .from('subscriptions')
+          .select('workspace_id')
+          .eq('id', subscription.id)
+          .maybeSingle();
+        if (existingSub) workspaceId = existingSub.workspace_id;
+      }
 
       if (workspaceId) {
         await supabaseAdmin.from('subscriptions').upsert({
@@ -84,6 +94,8 @@ export async function POST(req: Request) {
         }, { onConflict: 'id' });
 
         console.log(`✅ Sub ${subscription.id} synced for workspace ${workspaceId} (status: ${subscription.status})`);
+      } else {
+        console.warn(`⚠️ customer.subscription.updated missing workspace_id for sub ${subscription.id}`);
       }
     }
 

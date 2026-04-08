@@ -40,6 +40,8 @@ function DashboardContent() {
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [isPro, setIsPro] = useState(false);
   const [tier, setTier] = useState<'free' | 'pro' | 'business'>('free');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [rawSub, setRawSub] = useState<any>(null);
   const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
   const FREE_LIMIT = 25;
 
@@ -77,6 +79,7 @@ function DashboardContent() {
         setMonthlyCount(usageResult.count);
         setIsPro(usageResult.isPro);
         setTier((usageResult.tier as 'free' | 'pro' | 'business') || 'free');
+        setRawSub(usageResult.rawSub || null);
       }
       if (teamResult.success) setMembers(teamResult.data);
       setIsSearching(false);
@@ -93,6 +96,7 @@ function DashboardContent() {
         setMonthlyCount(usageResult.count);
         setIsPro(usageResult.isPro);
         setTier((usageResult.tier as 'free' | 'pro' | 'business') || 'free');
+        setRawSub(usageResult.rawSub || null);
       }
     } finally {
       setIsRefreshingPlan(false);
@@ -254,20 +258,33 @@ function DashboardContent() {
 
       <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
 
+        {/* ── DEBUG PANEL (TEMPORARY) ── */}
+        <div className="p-4 border border-dashed border-red-500/50 bg-red-950/20 font-mono text-xs text-red-200 uppercase tracking-widest break-all">
+          <div className="mb-2 text-red-400 font-black">⚙️ DEBUG PANEL — SUBSCRIPTION SYNC ⚙️</div>
+          <div>Workspace ID: {workspaceId || 'none'}</div>
+          <div>Computed Tier: {tier}</div>
+          <div className="mt-2 text-white/50 lowercase whitespace-pre-wrap">
+            {rawSub ? `Subscription data: ${JSON.stringify({ ...rawSub, tier }, null, 2)}` : 'No subscription row found in Supabase.'}
+          </div>
+        </div>
+
         {/* ── STATS CARDS ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-white/20">
           <StatCard label="TOTAL LOGGED" value={allDecisions.length.toString()} />
           <StatCard label="THIS MONTH" value={thisMonthCount.toString()} highlight={thisMonthCount > 0} />
 
-          {/* Usage meter */}
+          {/* Usage meter strictly checking active paid subscription */}
           <div className={`p-4 border-r border-white/10 ${tier === 'free' && monthlyCount >= FREE_LIMIT ? 'bg-red-950/30' : tier === 'free' && monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-950/20' : ''}`}>
             <div className="text-white/40 text-xs tracking-widest uppercase mb-2">
               {tier !== 'free' ? 'PLAN' : 'MONTHLY USAGE'}
             </div>
-            {tier !== 'free' ? (
+            
+            {tier !== 'free' && rawSub?.status === 'active' ? (
               <div className="space-y-1">
                 <div className="text-3xl font-black text-white">∞</div>
-                <div className="text-white/50 text-xs tracking-widest uppercase">Unlimited</div>
+                <div className="text-white/50 text-xs tracking-widest uppercase">
+                  Unlimited {tier}
+                </div>
               </div>
             ) : (
               <>

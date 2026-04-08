@@ -43,6 +43,12 @@ export async function createCheckoutSession(workspaceId: string, tier: 'pro' | '
       metadata: {
         workspace_id: workspaceId,
       },
+      subscription_data: {
+        metadata: {
+          workspace_id: workspaceId,
+        },
+        description: `OpsMem Subscription [Workspace: ${workspaceId}]`,
+      },
     });
 
     return { url: session.url };
