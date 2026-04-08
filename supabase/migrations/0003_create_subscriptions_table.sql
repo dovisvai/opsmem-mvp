@@ -1,7 +1,10 @@
--- Create subscriptions table for Stripe data
-CREATE TABLE IF NOT EXISTS public.subscriptions (
-  id text PRIMARY KEY, -- Stripe subscription ID
+-- Drop table to ensure clean schema update if re-running
+DROP TABLE IF EXISTS public.subscriptions;
+
+CREATE TABLE public.subscriptions (
+  stripe_subscription_id text PRIMARY KEY,
   workspace_id text NOT NULL,
+  stripe_customer_id text,
   status text NOT NULL,
   price_id text,
   current_period_end timestamp with time zone,

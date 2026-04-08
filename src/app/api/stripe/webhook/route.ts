@@ -43,25 +43,32 @@ export async function POST(req: Request) {
       const session = event.data.object as Stripe.Checkout.Session;
       const workspaceId = session.metadata?.workspace_id;
       const stripeSubscriptionId = session.subscription as string | null;
+      const stripeCustomerId = session.customer as string | null;
 
       console.log(`💳 checkout.session.completed — workspace=${workspaceId} sub=${stripeSubscriptionId}`);
+
+      if (!workspaceId) {
+        console.error('❌ ERROR: checkout.session.completed missing workspace_id in metadata!', session.metadata);
+      }
 
       if (workspaceId && stripeSubscriptionId) {
         // Fetch the full subscription so we have period end + price info
         const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+        
+        let priceId = subscription.items.data[0]?.price?.id ?? null;
+        if (!priceId) console.warn('⚠️ price_id not found in subscription line items.');
 
         await supabaseAdmin.from('subscriptions').upsert({
-          id: subscription.id,
+          stripe_subscription_id: subscription.id,
           workspace_id: workspaceId,
+          stripe_customer_id: stripeCustomerId,
           status: subscription.status,
-          price_id: subscription.items.data[0]?.price?.id ?? null,
+          price_id: priceId,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           current_period_end: new Date(((subscription as unknown as any).current_period_end as number) * 1000).toISOString(),
-        }, { onConflict: 'id' });
+        }, { onConflict: 'stripe_subscription_id' });
 
         console.log(`✅ Subscription ${subscription.id} upserted for workspace ${workspaceId} (status: ${subscription.status})`);
-      } else {
-        console.warn('⚠️ checkout.session.completed missing workspace_id or subscription id', { workspaceId, stripeSubscriptionId });
       }
     }
 
@@ -78,20 +85,21 @@ export async function POST(req: Request) {
         const { data: existingSub } = await supabaseAdmin
           .from('subscriptions')
           .select('workspace_id')
-          .eq('id', subscription.id)
+          .eq('stripe_subscription_id', subscription.id)
           .maybeSingle();
         if (existingSub) workspaceId = existingSub.workspace_id;
       }
 
       if (workspaceId) {
         await supabaseAdmin.from('subscriptions').upsert({
-          id: subscription.id,
+          stripe_subscription_id: subscription.id,
           workspace_id: workspaceId,
+          stripe_customer_id: subscription.customer as string,
           status: subscription.status,
           price_id: subscription.items.data[0]?.price?.id ?? null,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           current_period_end: new Date(((subscription as unknown as any).current_period_end as number) * 1000).toISOString(),
-        }, { onConflict: 'id' });
+        }, { onConflict: 'stripe_subscription_id' });
 
         console.log(`✅ Sub ${subscription.id} synced for workspace ${workspaceId} (status: ${subscription.status})`);
       } else {
@@ -104,7 +112,7 @@ export async function POST(req: Request) {
       await supabaseAdmin
         .from('subscriptions')
         .update({ status: 'canceled' })
-        .eq('id', subscription.id);
+        .eq('stripe_subscription_id', subscription.id);
       console.log(`❌ Subscription ${subscription.id} marked canceled`);
     }
 
