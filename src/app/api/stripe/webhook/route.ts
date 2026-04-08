@@ -125,16 +125,23 @@ export async function POST(req: Request) {
           console.error('❌ ERROR converting current_period_end in customer.subscription.*:', dateErr, (subscription as any).current_period_end);
         }
 
-        await supabaseAdmin.from('subscriptions').upsert({
-          stripe_subscription_id: subscription.id,
-          workspace_id: workspaceId,
-          stripe_customer_id: subscription.customer as string,
-          status: subscription.status,
-          price_id: subscription.items.data[0]?.price?.id ?? null,
-          current_period_end: currentPeriodEnd,
-        }, { onConflict: 'stripe_subscription_id' });
+        if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+          await supabaseAdmin.from('subscriptions')
+            .delete()
+            .eq('stripe_subscription_id', subscription.id);
+          console.error(`❌ Sub ${subscription.id} updated to ${subscription.status}; DELETED row for workspace ${workspaceId} to lock Free limits.`);
+        } else {
+          await supabaseAdmin.from('subscriptions').upsert({
+            stripe_subscription_id: subscription.id,
+            workspace_id: workspaceId,
+            stripe_customer_id: subscription.customer as string,
+            status: subscription.status,
+            price_id: subscription.items.data[0]?.price?.id ?? null,
+            current_period_end: currentPeriodEnd,
+          }, { onConflict: 'stripe_subscription_id' });
 
-        console.log(`✅ Sub ${subscription.id} synced for workspace ${workspaceId} (status: ${subscription.status})`);
+          console.log(`✅ Sub ${subscription.id} synced for workspace ${workspaceId} (status: ${subscription.status})`);
+        }
       } else {
         console.warn(`⚠️ customer.subscription.updated missing workspace_id for sub ${subscription.id}`);
       }
@@ -144,9 +151,9 @@ export async function POST(req: Request) {
       const subscription = event.data.object as Stripe.Subscription;
       await supabaseAdmin
         .from('subscriptions')
-        .update({ status: 'canceled' })
+        .delete()
         .eq('stripe_subscription_id', subscription.id);
-      console.log(`❌ Subscription ${subscription.id} marked canceled`);
+      console.error(`❌ Subscription ${subscription.id} DELETED from Supabase via customer.subscription.deleted hook.`);
     }
 
     return NextResponse.json({ received: true });

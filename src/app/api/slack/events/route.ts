@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { logDecision, searchDecisions, getMonthlyUsage } from '@/app/actions/decisions';
 
@@ -123,8 +125,8 @@ export async function POST(request: Request) {
         });
       }
 
-      // Check current quota metrics for Free users
-      const usage = await getMonthlyUsage(workspace_id);
+      // Check current quota metrics for Free users (bypassing any request memoization)
+      const usage = await getMonthlyUsage(workspace_id, Date.now());
       
       const tagLine = tagsArray.length > 0
         ? `\n🏷️ Tags: ${tagsArray.map(t => `#${t}`).join(' ')}`

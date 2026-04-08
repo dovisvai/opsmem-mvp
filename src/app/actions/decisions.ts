@@ -87,7 +87,7 @@ export async function logDecision(
 }
 
 // Return current month's decision count and the free plan limit.
-export async function getMonthlyUsage(workspaceId: string) {
+export async function getMonthlyUsage(workspaceId: string, _forceRefresh?: number) {
   try {
     if (!workspaceId) return { success: false, count: 0, limit: 25, isPro: false };
 
