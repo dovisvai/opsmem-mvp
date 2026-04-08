@@ -44,9 +44,9 @@ function PricingContent() {
 
       {/* Nav */}
       <nav className="border-b border-white/20 px-8 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/opsmem-logo.png" alt="OpsMem" width={28} height={28} style={{ imageRendering: 'pixelated', filter: 'invert(1)' }} />
-          <span className="font-black text-sm tracking-widest uppercase">[ OPSMEM ]</span>
+        <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
+          <Image src="/opsmem-logo.png" alt="OpsMem" width={32} height={32} style={{ imageRendering: 'pixelated', filter: 'invert(1)' }} priority />
+          <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
         </Link>
         <div className="flex gap-6 text-xs tracking-widest text-white/60">
           {workspaceId && (
