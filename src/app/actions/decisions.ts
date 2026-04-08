@@ -3,6 +3,7 @@
 import OpenAI from 'openai';
 import { createAdminClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import Stripe from 'stripe';
 
 const logDecisionSchema = z.object({
   text: z.string().min(1).max(2000),
@@ -104,10 +105,28 @@ export async function getMonthlyUsage(workspaceId: string, _forceRefresh?: numbe
 
     const { data: sub } = await supabaseAdmin
       .from('subscriptions')
-      .select('status, price_id')
+      .select('status, price_id, stripe_subscription_id')
       .eq('workspace_id', workspaceId)
       .in('status', ['active', 'trialing'])
       .maybeSingle();
+
+    if (sub && _forceRefresh && sub.stripe_subscription_id) {
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (stripeSecretKey) {
+        const stripe = new Stripe(stripeSecretKey, { apiVersion: '2026-03-25.dahlia' });
+        try {
+          const remoteSub = await stripe.subscriptions.retrieve(sub.stripe_subscription_id);
+          if (remoteSub.status === 'canceled' || remoteSub.status === 'incomplete_expired' || remoteSub.cancel_at_period_end) {
+            await supabaseAdmin.from('subscriptions')
+              .delete()
+              .eq('stripe_subscription_id', sub.stripe_subscription_id);
+            return { success: true, count: count || 0, limit: 25, isPro: false, tier: 'free', rawSub: null };
+          }
+        } catch (e) {
+          console.error('Failed to remotely verify Stripe sub:', e);
+        }
+      }
+    }
 
     let tier: 'free' | 'pro' | 'business' = 'free';
     if (sub) {
