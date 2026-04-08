@@ -66,14 +66,25 @@ export async function POST(req: Request) {
         if (!priceId) console.error('⚠️ price_id not found in subscription line items.');
 
         try {
+          let currentPeriodEnd = null;
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const periodEnd = (subscription as any).current_period_end;
+            currentPeriodEnd = periodEnd
+              ? new Date(periodEnd * 1000).toISOString()
+              : null;
+          } catch (dateErr) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            console.error('❌ ERROR converting current_period_end in checkout.session.completed:', dateErr, (subscription as any).current_period_end);
+          }
+
           await supabaseAdmin.from('subscriptions').upsert({
             stripe_subscription_id: subscription.id,
             workspace_id: workspaceId,
             stripe_customer_id: stripeCustomerId,
             status: subscription.status,
             price_id: priceId,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            current_period_end: new Date(((subscription as unknown as any).current_period_end as number) * 1000).toISOString(),
+            current_period_end: currentPeriodEnd,
           }, { onConflict: 'stripe_subscription_id' });
 
           console.error(`✅ Successfully upserted subscription for workspace: ${workspaceId}`);
@@ -102,14 +113,25 @@ export async function POST(req: Request) {
       }
 
       if (workspaceId) {
+        let currentPeriodEnd = null;
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const periodEnd = (subscription as any).current_period_end;
+          currentPeriodEnd = periodEnd
+            ? new Date(periodEnd * 1000).toISOString()
+            : null;
+        } catch (dateErr) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          console.error('❌ ERROR converting current_period_end in customer.subscription.*:', dateErr, (subscription as any).current_period_end);
+        }
+
         await supabaseAdmin.from('subscriptions').upsert({
           stripe_subscription_id: subscription.id,
           workspace_id: workspaceId,
           stripe_customer_id: subscription.customer as string,
           status: subscription.status,
           price_id: subscription.items.data[0]?.price?.id ?? null,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          current_period_end: new Date(((subscription as unknown as any).current_period_end as number) * 1000).toISOString(),
+          current_period_end: currentPeriodEnd,
         }, { onConflict: 'stripe_subscription_id' });
 
         console.log(`✅ Sub ${subscription.id} synced for workspace ${workspaceId} (status: ${subscription.status})`);
