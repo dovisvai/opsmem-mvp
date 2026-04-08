@@ -29,9 +29,13 @@ export async function POST(req: Request) {
   try {
     event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (err: unknown) {
-    console.error('⚠️ Webhook signature verification failed:', (err as Error).message);
+    console.error('🚨 Webhook signature verification failed:', (err as Error).message);
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });
   }
+
+  console.error('========================================================================');
+  console.error(`🚀 WEBHOOK RECEIVED: ${event.type}`);
+  console.error('========================================================================');
 
   const supabaseAdmin = createAdminClient();
 
@@ -45,10 +49,13 @@ export async function POST(req: Request) {
       const stripeSubscriptionId = session.subscription as string | null;
       const stripeCustomerId = session.customer as string | null;
 
-      console.log(`💳 checkout.session.completed — workspace=${workspaceId} sub=${stripeSubscriptionId}`);
+      console.error(`💳 checkout.session.completed hit!`);
+      console.error(`   -> workspace_id received: ${workspaceId || 'UNDEFINED'}`);
+      console.error(`   -> subscription_id: ${stripeSubscriptionId || 'UNDEFINED'}`);
+      console.error(`   -> FULL METADATA:`, session.metadata);
 
       if (!workspaceId) {
-        console.error('❌ ERROR: checkout.session.completed missing workspace_id in metadata!', session.metadata);
+        console.error('❌ ERROR: no workspace_id in metadata!');
       }
 
       if (workspaceId && stripeSubscriptionId) {
@@ -56,19 +63,23 @@ export async function POST(req: Request) {
         const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
         
         let priceId = subscription.items.data[0]?.price?.id ?? null;
-        if (!priceId) console.warn('⚠️ price_id not found in subscription line items.');
+        if (!priceId) console.error('⚠️ price_id not found in subscription line items.');
 
-        await supabaseAdmin.from('subscriptions').upsert({
-          stripe_subscription_id: subscription.id,
-          workspace_id: workspaceId,
-          stripe_customer_id: stripeCustomerId,
-          status: subscription.status,
-          price_id: priceId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          current_period_end: new Date(((subscription as unknown as any).current_period_end as number) * 1000).toISOString(),
-        }, { onConflict: 'stripe_subscription_id' });
+        try {
+          await supabaseAdmin.from('subscriptions').upsert({
+            stripe_subscription_id: subscription.id,
+            workspace_id: workspaceId,
+            stripe_customer_id: stripeCustomerId,
+            status: subscription.status,
+            price_id: priceId,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            current_period_end: new Date(((subscription as unknown as any).current_period_end as number) * 1000).toISOString(),
+          }, { onConflict: 'stripe_subscription_id' });
 
-        console.log(`✅ Subscription ${subscription.id} upserted for workspace ${workspaceId} (status: ${subscription.status})`);
+          console.error(`✅ Successfully upserted subscription for workspace: ${workspaceId}`);
+        } catch (dbError) {
+          console.error(`❌ DB UPSERT FAILED for workspace ${workspaceId}:`, dbError);
+        }
       }
     }
 
