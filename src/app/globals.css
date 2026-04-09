@@ -1,40 +1,168 @@
 @import "tailwindcss";
 
-/* ── DEFAULT: dark theme ── */
-:root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --border: rgba(255, 255, 255, 0.2);
-  --muted: rgba(255, 255, 255, 0.5);
-  --card: #111111;
-}
-
-/* ── LIGHT THEME (when .light class is on <html>) ── */
-html.light {
-  --background: #f4f4f0;
-  --foreground: #0a0a0a;
-  --border: rgba(0, 0, 0, 0.2);
-  --muted: rgba(0, 0, 0, 0.5);
-  --card: #e8e8e4;
-}
-
-/* ── DARK THEME explicit (when .dark class is on <html>) ── */
+/* ─────────────────────────────────────────────
+   DARK THEME (default + explicit .dark)
+───────────────────────────────────────────── */
+:root,
 html.dark {
   --background: #0a0a0a;
   --foreground: #ededed;
-  --border: rgba(255, 255, 255, 0.2);
-  --muted: rgba(255, 255, 255, 0.5);
   --card: #111111;
+  --card-hover: rgba(255,255,255,0.05);
+
+  /* Border opacities */
+  --border-strong:  rgba(255,255,255,0.4);
+  --border-medium:  rgba(255,255,255,0.2);
+  --border-soft:    rgba(255,255,255,0.1);
+  --border-faint:   rgba(255,255,255,0.05);
+
+  /* Text opacities */
+  --text-muted:     rgba(237,237,237,0.6);
+  --text-dim:       rgba(237,237,237,0.5);
+  --text-dimmer:    rgba(237,237,237,0.4);
+  --text-dimmest:   rgba(237,237,237,0.3);
+  --text-ghost:     rgba(237,237,237,0.25);
+
+  /* Button inverted (primary) */
+  --btn-primary-bg:   #ededed;
+  --btn-primary-text: #0a0a0a;
+  --btn-primary-border: #ededed;
+  --btn-primary-hover-bg:   #0a0a0a;
+  --btn-primary-hover-text: #ededed;
+
+  /* Button secondary */
+  --btn-secondary-bg:   #0a0a0a;
+  --btn-secondary-text: #ededed;
+  --btn-secondary-border: rgba(255,255,255,0.4);
+  --btn-secondary-hover-bg: #ededed;
+  --btn-secondary-hover-text: #0a0a0a;
+
+  /* Logo filter: invert(1) makes white logo visible on dark bg */
+  --logo-filter: invert(1);
 }
 
+/* ─────────────────────────────────────────────
+   LIGHT THEME (explicit .light class)
+───────────────────────────────────────────── */
+html.light {
+  --background: #f4f4f0;
+  --foreground: #0a0a0a;
+  --card: #e4e4e0;
+  --card-hover: rgba(0,0,0,0.04);
+
+  /* Border opacities */
+  --border-strong:  rgba(0,0,0,0.5);
+  --border-medium:  rgba(0,0,0,0.18);
+  --border-soft:    rgba(0,0,0,0.10);
+  --border-faint:   rgba(0,0,0,0.05);
+
+  /* Text opacities */
+  --text-muted:     rgba(10,10,10,0.65);
+  --text-dim:       rgba(10,10,10,0.55);
+  --text-dimmer:    rgba(10,10,10,0.45);
+  --text-dimmest:   rgba(10,10,10,0.35);
+  --text-ghost:     rgba(10,10,10,0.25);
+
+  /* Button inverted (primary) */
+  --btn-primary-bg:   #0a0a0a;
+  --btn-primary-text: #f4f4f0;
+  --btn-primary-border: #0a0a0a;
+  --btn-primary-hover-bg:   #f4f4f0;
+  --btn-primary-hover-text: #0a0a0a;
+
+  /* Button secondary */
+  --btn-secondary-bg:   #f4f4f0;
+  --btn-secondary-text: #0a0a0a;
+  --btn-secondary-border: rgba(0,0,0,0.5);
+  --btn-secondary-hover-bg: #0a0a0a;
+  --btn-secondary-hover-text: #f4f4f0;
+
+  /* Logo filter: invert(0) keeps dark logo visible on light bg */
+  --logo-filter: invert(0);
+}
+
+/* ─────────────────────────────────────────────
+   BASE
+───────────────────────────────────────────── */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Smooth theme transitions */
 *, *::before, *::after {
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease, filter 0.2s ease;
+}
+
+/* ─────────────────────────────────────────────
+   SEMANTIC UTILITY CLASSES (theme-aware)
+───────────────────────────────────────────── */
+
+/* Borders */
+.th-border-strong  { border-color: var(--border-strong); }
+.th-border-medium  { border-color: var(--border-medium); }
+.th-border-soft    { border-color: var(--border-soft); }
+.th-border-faint   { border-color: var(--border-faint); }
+
+/* Text */
+.th-text-muted    { color: var(--text-muted); }
+.th-text-dim      { color: var(--text-dim); }
+.th-text-dimmer   { color: var(--text-dimmer); }
+.th-text-dimmest  { color: var(--text-dimmest); }
+.th-text-ghost    { color: var(--text-ghost); }
+
+/* Logo — always matches theme */
+.th-logo { filter: var(--logo-filter); image-rendering: pixelated; }
+
+/* Card */
+.th-card { background: var(--card); }
+.th-card-hover:hover { background: var(--card-hover); }
+
+/* Primary button (solid fill, inverted on theme) */
+.th-btn-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-color: var(--btn-primary-border);
+}
+.th-btn-primary:hover:not(:disabled) {
+  background: var(--btn-primary-hover-bg);
+  color: var(--btn-primary-hover-text);
+}
+
+/* Secondary button (outlined) */
+.th-btn-secondary {
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-color: var(--btn-secondary-border);
+}
+.th-btn-secondary:hover:not(:disabled) {
+  background: var(--btn-secondary-hover-bg);
+  color: var(--btn-secondary-hover-text);
+}
+
+/* Ghost nav button */
+.th-nav-link {
+  color: var(--text-muted);
+}
+.th-nav-link:hover {
+  color: var(--foreground);
+}
+
+/* Divider / separator */
+.th-divider { border-color: var(--border-medium); }
+
+/* Input */
+.th-input {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--border-medium);
+  caret-color: var(--foreground);
+}
+.th-input:focus {
+  border-color: var(--border-strong);
+  outline: none;
+}
+.th-input::placeholder {
+  color: var(--text-dimmer);
 }
