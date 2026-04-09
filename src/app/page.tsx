@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export const metadata = {
   title: 'OpsMem — Team Decision Log',
@@ -8,7 +9,7 @@ export const metadata = {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+    <div className="min-h-screen bg-background text-foreground flex flex-col" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
 
       {/* Nav */}
       <nav className="border-b border-white/20 px-8 py-4 flex items-center justify-between">
@@ -23,9 +24,10 @@ export default function Home() {
           />
           <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
         </div>
-        <div className="flex gap-6 text-xs tracking-widest text-white/60">
-          <Link href="/dashboard" className="hover:text-white transition-colors uppercase">Dashboard</Link>
-          <Link href="/pricing" className="hover:text-white transition-colors uppercase">Pricing</Link>
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard" className="text-xs tracking-widest text-white/60 hover:text-white transition-colors uppercase">Dashboard</Link>
+          <Link href="/pricing" className="text-xs tracking-widest text-white/60 hover:text-white transition-colors uppercase">Pricing</Link>
+          <ThemeToggle />
         </div>
       </nav>
 

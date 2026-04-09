@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage } from '@/app/actions/decisions';
 import { getWorkspaceMembers, createInvite, WorkspaceMember } from '@/app/actions/team';
 import { createCustomerPortalSession } from '@/app/actions/stripe';
@@ -10,7 +11,7 @@ import { createCustomerPortalSession } from '@/app/actions/stripe';
 export default function DashboardPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-black text-white flex items-center justify-center font-mono tracking-widest animate-pulse">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center font-mono tracking-widest animate-pulse">
         BOOTING OPSMEM...
       </div>
     }>
@@ -197,13 +198,13 @@ function DashboardContent() {
 
   if (!workspaceId) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-8" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
-        <div className="border-4 border-white p-10 text-center max-w-lg">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-8" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+        <div className="border-4 border-foreground p-10 text-center max-w-lg">
           <div className="text-4xl font-black mb-6 tracking-widest">[ NO WORKSPACE ]</div>
-          <p className="text-white/60 text-sm mb-6 leading-relaxed">
+          <p className="text-foreground/60 text-sm mb-6 leading-relaxed">
             Add your Slack workspace ID to the URL to access your decision memory.
           </p>
-          <code className="bg-white text-black px-4 py-2 text-xs font-mono block">
+          <code className="bg-foreground text-background px-4 py-2 text-xs font-mono block">
             /dashboard?workspace=YOUR_TEAM_ID
           </code>
         </div>
@@ -212,10 +213,10 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+    <div className="min-h-screen bg-background text-foreground flex flex-col" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
 
       {/* ── NAV ── */}
-      <header className="border-b-2 border-white/30 px-6 py-3 flex items-center justify-between sticky top-0 bg-black z-40">
+      <header className="border-b-2 border-foreground/30 px-6 py-3 flex items-center justify-between sticky top-0 bg-background z-40">
         <div className="flex items-center gap-4">
           <Image
             src="/opsmem-logo.png"
@@ -223,11 +224,12 @@ function DashboardContent() {
             width={32}
             height={32}
             style={{ imageRendering: 'pixelated', filter: 'invert(1)' }}
+            className="opacity-90"
           />
           <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
-          <span className="text-white/20 hidden sm:inline">|</span>
-          <span className="text-white/50 text-xs tracking-widest uppercase">Dashboard</span>
-          <span className="text-white/25 text-xs border border-white/20 px-2 py-0.5 hidden sm:inline">{workspaceId}</span>
+          <span className="text-foreground/20 hidden sm:inline">|</span>
+          <span className="text-foreground/50 text-xs tracking-widest uppercase">Dashboard</span>
+          <span className="text-foreground/25 text-xs border border-foreground/20 px-2 py-0.5 hidden sm:inline">{workspaceId}</span>
         </div>
         <div className="flex items-center gap-3">
           {statusMsg && (
@@ -237,21 +239,21 @@ function DashboardContent() {
           )}
           {tier !== 'free' && rawSub?.status === 'active' ? (
             <>
-              <span className="px-3 py-1.5 border border-white/40 bg-white text-black text-xs font-black tracking-widest uppercase hidden sm:inline-flex items-center gap-1">
+              <span className="px-3 py-1.5 border border-foreground/40 bg-foreground text-background text-xs font-black tracking-widest uppercase hidden sm:inline-flex items-center gap-1">
                 ∞ {tier === 'business' ? 'BUSINESS' : 'PRO'}
               </span>
               <button
                 onClick={refreshPlan}
                 disabled={isRefreshingPlan}
                 title="Refresh plan status"
-                className="px-3 py-1.5 border border-white/20 text-white/40 text-xs font-black tracking-widest hover:border-white/50 hover:text-white/70 transition-all uppercase hidden sm:block disabled:opacity-30"
+                className="px-3 py-1.5 border border-foreground/20 text-foreground/40 text-xs font-black tracking-widest hover:border-foreground/50 hover:text-foreground/70 transition-all uppercase hidden sm:block disabled:opacity-30"
               >
                 {isRefreshingPlan ? '...' : '↺'}
               </button>
               <button
                 onClick={handleManagePlan}
                 disabled={isManagingPlan}
-                className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block disabled:opacity-30"
+                className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase hidden sm:block disabled:opacity-30"
               >
                 {isManagingPlan ? 'LOADING...' : 'MANAGE SUB'}
               </button>
@@ -259,7 +261,7 @@ function DashboardContent() {
           ) : (
             <button
               onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
-              className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block"
+              className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase hidden sm:block"
               title="Upgrade your plan"
             >
               FREE PLAN ↑
@@ -267,13 +269,14 @@ function DashboardContent() {
           )}
           <button
             onClick={() => setShowTeam(true)}
-            className="px-3 py-1.5 border border-white/30 text-white/60 text-xs font-black tracking-widest hover:border-white hover:text-white transition-all uppercase hidden sm:block"
+            className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase hidden sm:block"
           >
             TEAM {members.filter(m => m.accepted_at).length > 0 ? `(${members.filter(m => m.accepted_at).length})` : ''}
           </button>
+          <ThemeToggle />
           <button
             onClick={() => router.push('/')}
-            className="px-3 py-1.5 border border-white/20 text-white/40 text-xs font-black tracking-widest hover:border-white/50 hover:text-white/70 transition-all uppercase"
+            className="px-3 py-1.5 border border-foreground/20 text-foreground/40 text-xs font-black tracking-widest hover:border-foreground/50 hover:text-foreground/70 transition-all uppercase"
           >
             EXIT
           </button>
@@ -287,42 +290,42 @@ function DashboardContent() {
           <div className="mb-2 text-red-400 font-black">⚙️ DEBUG PANEL — SUBSCRIPTION SYNC ⚙️</div>
           <div>Workspace ID: {workspaceId || 'none'}</div>
           <div>Computed Tier: {tier}</div>
-          <div className="mt-2 text-white/50 lowercase whitespace-pre-wrap">
+          <div className="mt-2 text-foreground/50 lowercase whitespace-pre-wrap">
             {rawSub ? `Subscription data: ${JSON.stringify({ ...rawSub, tier }, null, 2)}` : 'No subscription row found in Supabase.'}
           </div>
         </div>
 
         {/* ── STATS CARDS ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-white/20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-foreground/20">
           <StatCard label="TOTAL LOGGED" value={allDecisions.length.toString()} />
           <StatCard label="THIS MONTH" value={thisMonthCount.toString()} highlight={thisMonthCount > 0} />
 
           {/* Usage meter strictly checking active paid subscription */}
-          <div className={`p-4 border-r border-white/10 ${tier === 'free' && monthlyCount >= FREE_LIMIT ? 'bg-red-950/30' : tier === 'free' && monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-950/20' : ''}`}>
-            <div className="text-white/40 text-xs tracking-widest uppercase mb-2">
+          <div className={`p-4 border-r border-foreground/10 ${tier === 'free' && monthlyCount >= FREE_LIMIT ? 'bg-red-950/30' : tier === 'free' && monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-950/20' : ''}`}>
+            <div className="text-foreground/40 text-xs tracking-widest uppercase mb-2">
               {tier !== 'free' ? 'PLAN' : 'MONTHLY USAGE'}
             </div>
             
             {tier !== 'free' && rawSub?.status === 'active' ? (
               <div className="space-y-1">
-                <div className="text-3xl font-black text-white">∞</div>
-                <div className="text-white/50 text-xs tracking-widest uppercase">
+                <div className="text-3xl font-black text-foreground">∞</div>
+                <div className="text-foreground/50 text-xs tracking-widest uppercase">
                   Unlimited {tier}
                 </div>
               </div>
             ) : (
               <>
                 <div className="flex items-baseline gap-1 mb-2">
-                  <span className={`text-2xl font-black tabular-nums ${monthlyCount >= FREE_LIMIT ? 'text-red-400' : monthlyCount >= FREE_LIMIT * 0.8 ? 'text-yellow-400' : 'text-white'}`}>
+                  <span className={`text-2xl font-black tabular-nums ${monthlyCount >= FREE_LIMIT ? 'text-red-400' : monthlyCount >= FREE_LIMIT * 0.8 ? 'text-yellow-400' : 'text-foreground'}`}>
                     {monthlyCount}
                   </span>
-                  <span className="text-white/30 text-sm">/ {FREE_LIMIT}</span>
-                  <span className="text-white/25 text-xs ml-1">this month</span>
+                  <span className="text-foreground/30 text-sm">/ {FREE_LIMIT}</span>
+                  <span className="text-foreground/25 text-xs ml-1">this month</span>
                 </div>
                 {/* Progress bar */}
-                <div className="h-1 bg-white/10 w-full mb-2">
+                <div className="h-1 bg-foreground/10 w-full mb-2">
                   <div
-                    className={`h-1 transition-all ${monthlyCount >= FREE_LIMIT ? 'bg-red-400' : monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-400' : 'bg-white/60'}`}
+                    className={`h-1 transition-all ${monthlyCount >= FREE_LIMIT ? 'bg-red-400' : monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-400' : 'bg-foreground/60'}`}
                     style={{ width: `${Math.min(100, (monthlyCount / FREE_LIMIT) * 100)}%` }}
                   />
                 </div>
@@ -344,8 +347,8 @@ function DashboardContent() {
               </>
             )}
           </div>
-          <div className="p-4 border-l border-white/10 last:border-r-0">
-            <div className="text-white/40 text-xs tracking-widest uppercase mb-2">TOP TAGS</div>
+          <div className="p-4 border-l border-foreground/10 last:border-r-0">
+            <div className="text-foreground/40 text-xs tracking-widest uppercase mb-2">TOP TAGS</div>
             {topTags.length > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {topTags.map(([tag, count]) => (
@@ -353,7 +356,7 @@ function DashboardContent() {
                     key={tag}
                     onClick={() => setTagFilter(tag === tagFilter ? '' : tag)}
                     className={`text-xs px-1.5 py-0.5 border transition-colors ${
-                      tagFilter === tag ? 'border-white bg-white text-black' : 'border-white/20 text-white/60 hover:border-white/50'
+                      tagFilter === tag ? 'border-foreground bg-foreground text-background' : 'border-foreground/20 text-foreground/60 hover:border-foreground/50'
                     }`}
                   >
                     {tag} ({count})
@@ -361,7 +364,7 @@ function DashboardContent() {
                 ))}
               </div>
             ) : (
-              <span className="text-white/20 text-xs">—</span>
+              <span className="text-foreground/20 text-xs">—</span>
             )}
           </div>
         </div>
@@ -375,19 +378,19 @@ function DashboardContent() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && searchQuery.trim() && performSearch(searchQuery)}
-              className="flex-1 min-w-0 bg-black border border-white/30 focus:border-white outline-none px-3 py-2 text-white text-xs font-mono placeholder:text-white/25 transition-colors"
+              className="flex-1 min-w-0 bg-background border border-foreground/30 focus:border-foreground outline-none px-3 py-2 text-foreground text-xs font-mono placeholder:text-foreground/25 transition-colors"
             />
             <button
               onClick={() => searchQuery.trim() ? performSearch(searchQuery) : loadAll()}
               disabled={isPending}
-              className="px-4 py-2 border border-white text-xs font-black tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-30 uppercase shrink-0"
+              className="px-4 py-2 border border-foreground text-xs font-black tracking-widest hover:bg-foreground hover:text-background transition-all disabled:opacity-30 uppercase shrink-0"
             >
               {isPending ? '...' : 'FIND'}
             </button>
             {isSearching && (
               <button
                 onClick={() => { setSearchQuery(''); loadAll(); }}
-                className="px-3 py-2 border border-white/30 text-white/50 text-xs hover:border-white/60 hover:text-white transition-all shrink-0"
+                className="px-3 py-2 border border-foreground/30 text-foreground/50 text-xs hover:border-foreground/60 hover:text-foreground transition-all shrink-0"
               >
                 ✕
               </button>
@@ -400,19 +403,19 @@ function DashboardContent() {
               placeholder="filter by tag"
               value={tagFilter}
               onChange={e => setTagFilter(e.target.value)}
-              className="w-28 bg-black border border-white/20 focus:border-white/50 outline-none px-2 py-2 text-white text-xs font-mono placeholder:text-white/20 transition-colors"
+              className="w-28 bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-2 py-2 text-foreground text-xs font-mono placeholder:text-foreground/20 transition-colors"
             />
             <select
               value={sortOrder}
               onChange={e => setSortOrder(e.target.value as 'newest' | 'oldest')}
-              className="bg-black border border-white/20 text-white/60 text-xs font-mono px-2 py-2 outline-none focus:border-white/50 cursor-pointer"
+              className="bg-background border border-foreground/20 text-foreground/60 text-xs font-mono px-2 py-2 outline-none focus:border-foreground/50 cursor-pointer"
             >
               <option value="newest">NEWEST</option>
               <option value="oldest">OLDEST</option>
             </select>
             <button
               onClick={() => setShowModal(true)}
-              className="px-4 py-2 bg-white text-black font-black text-xs tracking-widest uppercase border-2 border-white hover:bg-black hover:text-white transition-all"
+              className="px-4 py-2 bg-foreground text-background font-black text-xs tracking-widest uppercase border-2 border-foreground hover:bg-background hover:text-foreground transition-all"
             >
               + LOG
             </button>
@@ -420,9 +423,9 @@ function DashboardContent() {
         </div>
 
         {/* ── TABLE ── */}
-        <div className="border border-white/20">
+        <div className="border border-foreground/20">
           {/* Header */}
-          <div className="hidden md:grid grid-cols-12 gap-3 px-4 py-2 border-b border-white/10 text-xs text-white/30 uppercase tracking-widest">
+          <div className="hidden md:grid grid-cols-12 gap-3 px-4 py-2 border-b border-foreground/10 text-xs text-foreground/30 uppercase tracking-widest">
             <span className="col-span-2">Date</span>
             <span className="col-span-6">Decision</span>
             <span className="col-span-2">Tags</span>
@@ -431,12 +434,12 @@ function DashboardContent() {
           </div>
 
           {isPending ? (
-            <div className="py-16 text-center text-white/30 text-xs tracking-widest animate-pulse">
+            <div className="py-16 text-center text-foreground/30 text-xs tracking-widest animate-pulse">
               QUERYING MEMORY...
             </div>
           ) : paginated.length === 0 ? (
             <div className="py-16 text-center space-y-3">
-              <div className="text-white/20 text-xs tracking-widest">
+              <div className="text-foreground/20 text-xs tracking-widest">
                 {allDecisions.length === 0
                   ? 'NO DECISIONS LOGGED YET'
                   : 'NO RESULTS MATCH YOUR FILTERS'}
@@ -444,7 +447,7 @@ function DashboardContent() {
               {allDecisions.length === 0 && (
                 <button
                   onClick={() => setShowModal(true)}
-                  className="text-xs border border-white/20 px-4 py-2 hover:border-white/50 text-white/40 hover:text-white transition-all"
+                  className="text-xs border border-foreground/20 px-4 py-2 hover:border-foreground/50 text-foreground/40 hover:text-foreground transition-all"
                 >
                   + LOG YOUR FIRST DECISION
                 </button>
@@ -454,14 +457,14 @@ function DashboardContent() {
             paginated.map((d, i) => (
               <div
                 key={d.id}
-                className={`grid grid-cols-12 gap-3 px-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors group ${
+                className={`grid grid-cols-12 gap-3 px-4 py-4 border-b border-foreground/5 hover:bg-foreground/5 transition-colors group ${
                   i === paginated.length - 1 ? 'border-b-0' : ''
                 }`}
               >
-                <div className="col-span-12 md:col-span-2 text-white/35 text-xs self-center">
+                <div className="col-span-12 md:col-span-2 text-foreground/35 text-xs self-center">
                   {new Date(d.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                 </div>
-                <div className="col-span-12 md:col-span-6 text-white text-sm self-center leading-relaxed">
+                <div className="col-span-12 md:col-span-6 text-foreground text-sm self-center leading-relaxed">
                   {d.text}
                 </div>
                 <div className="col-span-8 md:col-span-2 flex flex-wrap gap-1 self-center">
@@ -471,8 +474,8 @@ function DashboardContent() {
                       onClick={() => setTagFilter(tag === tagFilter ? '' : tag)}
                       className={`text-xs px-1.5 border transition-colors ${
                         tagFilter === tag
-                          ? 'border-white bg-white text-black'
-                          : 'border-white/15 text-white/40 hover:border-white/40'
+                          ? 'border-foreground bg-foreground text-background'
+                          : 'border-foreground/15 text-foreground/40 hover:border-foreground/40'
                       }`}
                     >
                       {tag}
@@ -483,7 +486,7 @@ function DashboardContent() {
                   {d.similarity !== undefined && (
                     <span className={`text-xs font-mono font-bold tabular-nums ${
                       d.similarity >= 0.75 ? 'text-green-400' :
-                      d.similarity >= 0.65 ? 'text-yellow-400' : 'text-white/30'
+                      d.similarity >= 0.65 ? 'text-yellow-400' : 'text-foreground/30'
                     }`}>
                       {(d.similarity * 100).toFixed(0)}%
                     </span>
@@ -492,7 +495,7 @@ function DashboardContent() {
                 <div className="col-span-2 md:col-span-1 text-right self-center">
                   <button
                     onClick={() => handleCopy(d.id, d.text)}
-                    className="text-white/20 hover:text-white text-xs transition-colors opacity-0 group-hover:opacity-100"
+                    className="text-foreground/20 hover:text-foreground text-xs transition-colors opacity-0 group-hover:opacity-100"
                     title="Copy decision text"
                   >
                     {copiedId === d.id ? '✓' : '⎘'}
@@ -505,7 +508,7 @@ function DashboardContent() {
 
         {/* ── PAGINATION ── */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between text-xs text-white/40 font-mono">
+          <div className="flex items-center justify-between text-xs text-foreground/40 font-mono">
             <span>
               SHOWING {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, decisions.length)} OF {decisions.length}
             </span>
@@ -513,7 +516,7 @@ function DashboardContent() {
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 border border-white/20 hover:border-white/50 hover:text-white disabled:opacity-20 transition-all"
+                className="px-3 py-1 border border-foreground/20 hover:border-foreground/50 hover:text-foreground disabled:opacity-20 transition-all"
               >
                 ←
               </button>
@@ -523,8 +526,8 @@ function DashboardContent() {
                   onClick={() => setCurrentPage(p)}
                   className={`px-3 py-1 border transition-all ${
                     p === currentPage
-                      ? 'border-white text-white bg-white/10'
-                      : 'border-white/20 hover:border-white/50 hover:text-white'
+                      ? 'border-foreground text-foreground bg-foreground/10'
+                      : 'border-foreground/20 hover:border-foreground/50 hover:text-foreground'
                   }`}
                 >
                   {p}
@@ -533,7 +536,7 @@ function DashboardContent() {
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 border border-white/20 hover:border-white/50 hover:text-white disabled:opacity-20 transition-all"
+                className="px-3 py-1 border border-foreground/20 hover:border-foreground/50 hover:text-foreground disabled:opacity-20 transition-all"
               >
                 →
               </button>
@@ -544,18 +547,18 @@ function DashboardContent() {
 
       {/* ── LOG MODAL ── */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-black border-2 border-white w-full max-w-lg">
-            <div className="border-b border-white/20 px-6 py-4 flex items-center justify-between">
+        <div className="fixed inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-background border-2 border-foreground w-full max-w-lg">
+            <div className="border-b border-foreground/20 px-6 py-4 flex items-center justify-between">
               <h2 className="font-black tracking-widest uppercase text-sm">[ LOG NEW DECISION ]</h2>
               <button
                 onClick={() => { setShowModal(false); setStatusMsg(''); }}
-                className="text-white/40 hover:text-white text-lg transition-colors"
+                className="text-foreground/40 hover:text-foreground text-lg transition-colors"
               >×</button>
             </div>
             <form onSubmit={handleLogDecision} className="p-6 space-y-4">
               <div>
-                <label className="text-white/40 text-xs tracking-widest uppercase block mb-2">DECISION *</label>
+                <label className="text-foreground/40 text-xs tracking-widest uppercase block mb-2">DECISION *</label>
                 <textarea
                   autoFocus
                   placeholder="What did the team decide?"
@@ -563,17 +566,17 @@ function DashboardContent() {
                   onChange={e => setNewText(e.target.value)}
                   disabled={isPending}
                   rows={4}
-                  className="w-full bg-black border border-white/30 focus:border-white outline-none px-4 py-3 text-white text-sm font-mono placeholder:text-white/20 resize-none transition-colors"
+                  className="w-full bg-background border border-foreground/30 focus:border-foreground outline-none px-4 py-3 text-foreground text-sm font-mono placeholder:text-foreground/20 resize-none transition-colors"
                 />
               </div>
               <div>
-                <label className="text-white/40 text-xs tracking-widest uppercase block mb-2">TAGS (COMMA SEPARATED)</label>
+                <label className="text-foreground/40 text-xs tracking-widest uppercase block mb-2">TAGS (COMMA SEPARATED)</label>
                 <input
                   placeholder="e.g. backend, infra, q2-2025"
                   value={newTags}
                   onChange={e => setNewTags(e.target.value)}
                   disabled={isPending}
-                  className="w-full bg-black border border-white/30 focus:border-white outline-none px-4 py-2 text-white text-sm font-mono placeholder:text-white/20 transition-colors"
+                  className="w-full bg-background border border-foreground/30 focus:border-foreground outline-none px-4 py-2 text-foreground text-sm font-mono placeholder:text-foreground/20 transition-colors"
                 />
               </div>
               {statusMsg && (
@@ -585,14 +588,14 @@ function DashboardContent() {
                 <button
                   type="submit"
                   disabled={isPending || !newText.trim()}
-                  className="flex-1 py-3 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-black hover:text-white border-2 border-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:bg-background hover:text-foreground border-2 border-foreground transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   {isPending ? 'SAVING...' : '[ SAVE DECISION ]'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-6 py-3 border border-white/30 text-white/40 text-xs font-black tracking-widest hover:border-white/60 hover:text-white/70 transition-all uppercase"
+                  className="px-6 py-3 border border-foreground/30 text-foreground/40 text-xs font-black tracking-widest hover:border-foreground/60 hover:text-foreground/70 transition-all uppercase"
                 >
                   CANCEL
                 </button>
@@ -604,43 +607,43 @@ function DashboardContent() {
 
       {/* ── TEAM MODAL ── */}
       {showTeam && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-black border-2 border-white w-full max-w-lg max-h-[80vh] flex flex-col">
-            <div className="border-b border-white/20 px-6 py-4 flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-background border-2 border-foreground w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div className="border-b border-foreground/20 px-6 py-4 flex items-center justify-between shrink-0">
               <h2 className="font-black tracking-widest uppercase text-sm">[ YOUR TEAM ]</h2>
               <button onClick={() => { setShowTeam(false); setInviteUrl(''); setInviteCopied(false); }}
-                className="text-white/40 hover:text-white text-lg transition-colors">×</button>
+                className="text-foreground/40 hover:text-foreground text-lg transition-colors">×</button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Member list */}
               <div>
-                <div className="text-white/40 text-xs tracking-widest uppercase mb-3">
+                <div className="text-foreground/40 text-xs tracking-widest uppercase mb-3">
                   MEMBERS ({members.filter(m => m.accepted_at).length} active · {members.filter(m => !m.accepted_at).length} pending)
                 </div>
                 <div className="space-y-2">
                   {members.length === 0 ? (
-                    <div className="text-white/25 text-xs py-4 text-center border border-white/10">
+                    <div className="text-foreground/25 text-xs py-4 text-center border border-foreground/10">
                       No members yet. Generate an invite link to add teammates.
                     </div>
                   ) : members.map(m => (
-                    <div key={m.id} className="flex items-center justify-between px-3 py-2 border border-white/10 hover:border-white/20 transition-colors">
+                    <div key={m.id} className="flex items-center justify-between px-3 py-2 border border-foreground/10 hover:border-foreground/20 transition-colors">
                       <div>
-                        <div className="text-white text-xs font-mono">
-                          {m.user_name || m.user_email || <span className="text-white/30 italic">pending invite</span>}
+                        <div className="text-foreground text-xs font-mono">
+                          {m.user_name || m.user_email || <span className="text-foreground/30 italic">pending invite</span>}
                         </div>
                         {m.user_email && m.user_name && (
-                          <div className="text-white/30 text-xs">{m.user_email}</div>
+                          <div className="text-foreground/30 text-xs">{m.user_email}</div>
                         )}
                         {m.invited_by && (
-                          <div className="text-white/20 text-xs">invited by {m.invited_by}</div>
+                          <div className="text-foreground/20 text-xs">invited by {m.invited_by}</div>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`text-xs px-1.5 border font-mono ${
                           m.role === 'admin'
-                            ? 'border-white/40 text-white/60'
-                            : 'border-white/15 text-white/30'
+                            ? 'border-foreground/40 text-foreground/60'
+                            : 'border-foreground/15 text-foreground/30'
                         }`}>{m.role}</span>
                         {m.accepted_at ? (
                           <span className="text-green-400 text-xs">✓</span>
@@ -654,9 +657,9 @@ function DashboardContent() {
               </div>
 
               {/* Invite link generator */}
-              <div className="border-t border-white/10 pt-6">
-                <div className="text-white/40 text-xs tracking-widest uppercase mb-3">INVITE A TEAMMATE</div>
-                <p className="text-white/30 text-xs mb-4 leading-relaxed">
+              <div className="border-t border-foreground/10 pt-6">
+                <div className="text-foreground/40 text-xs tracking-widest uppercase mb-3">INVITE A TEAMMATE</div>
+                <p className="text-foreground/30 text-xs mb-4 leading-relaxed">
                   Generate a shareable invite link. Anyone with the link can join this workspace.
                 </p>
                 {!inviteUrl ? (
@@ -670,28 +673,28 @@ function DashboardContent() {
                       setIsGeneratingInvite(false);
                     }}
                     disabled={isGeneratingInvite}
-                    className="w-full py-3 border-2 border-white text-white font-black text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-all disabled:opacity-30"
+                    className="w-full py-3 border-2 border-foreground text-foreground font-black text-xs tracking-widest uppercase hover:bg-foreground hover:text-background transition-all disabled:opacity-30"
                   >
                     {isGeneratingInvite ? 'GENERATING...' : '[ GENERATE INVITE LINK ]'}
                   </button>
                 ) : (
                   <div className="space-y-2">
-                    <div className="border border-white/30 px-3 py-2 flex items-center gap-2">
-                      <code className="flex-1 text-xs text-white/70 font-mono truncate">{inviteUrl}</code>
+                    <div className="border border-foreground/30 px-3 py-2 flex items-center gap-2">
+                      <code className="flex-1 text-xs text-foreground/70 font-mono truncate">{inviteUrl}</code>
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(inviteUrl);
                           setInviteCopied(true);
                           setTimeout(() => setInviteCopied(false), 2000);
                         }}
-                        className="text-xs border border-white/30 px-2 py-1 hover:border-white/60 hover:text-white text-white/50 transition-all shrink-0 font-mono"
+                        className="text-xs border border-foreground/30 px-2 py-1 hover:border-foreground/60 hover:text-foreground text-foreground/50 transition-all shrink-0 font-mono"
                       >
                         {inviteCopied ? '✓ COPIED' : 'COPY'}
                       </button>
                     </div>
                     <button
                       onClick={() => { setInviteUrl(''); setInviteCopied(false); }}
-                      className="text-xs text-white/25 hover:text-white/50 transition-colors"
+                      className="text-xs text-foreground/25 hover:text-foreground/50 transition-colors"
                     >
                       Generate another ↺
                     </button>
@@ -704,7 +707,7 @@ function DashboardContent() {
       )}
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-white/10 px-6 py-4 text-center text-white/15 text-xs tracking-widest uppercase">
+      <footer className="border-t border-foreground/10 px-6 py-4 text-center text-foreground/15 text-xs tracking-widest uppercase">
         OPSMEM · {workspaceId} · POWERED BY OPENAI + SUPABASE
       </footer>
     </div>
@@ -715,12 +718,12 @@ function StatCard({ label, value, sub, highlight }: {
   label: string; value: string; sub?: string; highlight?: boolean;
 }) {
   return (
-    <div className={`p-4 border-r border-white/10 last:border-r-0 ${highlight ? 'bg-white/5' : ''}`}>
-      <div className="text-white/40 text-xs tracking-widest uppercase mb-2">{label}</div>
-      <div className={`text-3xl font-black tabular-nums ${highlight ? 'text-white' : 'text-white/80'}`}>
+    <div className={`p-4 border-r border-foreground/10 last:border-r-0 ${highlight ? 'bg-foreground/5' : ''}`}>
+      <div className="text-foreground/40 text-xs tracking-widest uppercase mb-2">{label}</div>
+      <div className={`text-3xl font-black tabular-nums ${highlight ? 'text-foreground' : 'text-foreground/80'}`}>
         {value}
       </div>
-      {sub && <div className="text-white/20 text-xs mt-0.5">{sub}</div>}
+      {sub && <div className="text-foreground/20 text-xs mt-0.5">{sub}</div>}
     </div>
   );
 }

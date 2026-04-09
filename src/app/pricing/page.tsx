@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createCheckoutSession } from '@/app/actions/stripe';
 import { useTransition, Suspense } from 'react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function PricingPage() {
   return (
@@ -48,13 +49,14 @@ function PricingContent() {
           <Image src="/opsmem-logo.png" alt="OpsMem" width={32} height={32} style={{ imageRendering: 'pixelated', filter: 'invert(1)' }} priority />
           <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
         </Link>
-        <div className="flex gap-6 text-xs tracking-widest text-white/60">
+        <div className="flex items-center gap-4 text-xs tracking-widest text-white/60">
           {workspaceId && (
             <button onClick={() => router.push(`/dashboard?workspace=${workspaceId}`)} className="hover:text-white transition-colors uppercase">
               Dashboard
             </button>
           )}
           <Link href="/" className="hover:text-white transition-colors uppercase">Home</Link>
+          <ThemeToggle />
         </div>
       </nav>
 
