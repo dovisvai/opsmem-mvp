@@ -46,6 +46,7 @@ function DashboardContent() {
   const [rawSub, setRawSub] = useState<any>(null);
   const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
   const [isManagingPlan, setIsManagingPlan] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const FREE_LIMIT = 25;
 
   // Modal state
@@ -420,6 +421,83 @@ function DashboardContent() {
               + LOG
             </button>
           </div>
+        </div>
+
+        {/* ── EXPORT ROW (Business only) ── */}
+        <div className="flex items-center justify-between border border-foreground/10 px-4 py-2.5">
+          <span className="text-xs text-foreground/40 tracking-widest uppercase font-mono">
+            {tier === 'business' ? `Export ${allDecisions.length} decisions` : '⬇ Data Export'}
+          </span>
+          {tier === 'business' ? (
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (isExporting) return;
+                  setIsExporting(true);
+                  try {
+                    const rows = [
+                      ['id', 'date', 'decision', 'tags'],
+                      ...allDecisions.map(d => [
+                        d.id,
+                        new Date(d.created_at).toISOString(),
+                        `"${d.text.replace(/"/g, '""')}"`,
+                        (d.tags || []).join(';'),
+                      ])
+                    ];
+                    const csv = rows.map(r => r.join(',')).join('\n');
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `opsmem-decisions-${workspaceId}-${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } finally {
+                    setIsExporting(false);
+                  }
+                }}
+                disabled={isExporting || allDecisions.length === 0}
+                className="px-3 py-1.5 border border-foreground/30 text-foreground/70 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase disabled:opacity-30"
+              >
+                {isExporting ? '...' : '↓ CSV'}
+              </button>
+              <button
+                onClick={() => {
+                  if (isExporting) return;
+                  setIsExporting(true);
+                  try {
+                    const data = allDecisions.map(d => ({
+                      id: d.id,
+                      date: new Date(d.created_at).toISOString(),
+                      decision: d.text,
+                      tags: d.tags || [],
+                    }));
+                    const json = JSON.stringify({ workspace_id: workspaceId, exported_at: new Date().toISOString(), total: data.length, decisions: data }, null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `opsmem-decisions-${workspaceId}-${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } finally {
+                    setIsExporting(false);
+                  }
+                }}
+                disabled={isExporting || allDecisions.length === 0}
+                className="px-3 py-1.5 border border-foreground/30 text-foreground/70 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase disabled:opacity-30"
+              >
+                {isExporting ? '...' : '↓ JSON'}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
+              className="text-xs text-foreground/30 border border-foreground/10 px-3 py-1.5 hover:border-foreground/30 hover:text-foreground/50 transition-all tracking-widest uppercase font-mono"
+            >
+              🔒 Business plan only — upgrade ↑
+            </button>
+          )}
         </div>
 
         {/* ── TABLE ── */}
