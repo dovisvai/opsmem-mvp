@@ -166,3 +166,25 @@ body {
 .th-input::placeholder {
   color: var(--text-dimmer);
 }
+
+/* ─────────────────────────────────────────────
+   STICKY NAV — scroll-driven solid background
+───────────────────────────────────────────── */
+.nav-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: transparent;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: transparent;
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  backdrop-filter: blur(0px);
+}
+
+.nav-scrolled {
+  background: var(--background) !important;
+  border-bottom-color: var(--border-medium) !important;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(8px);
+}

@@ -2,23 +2,13 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { logDecision, searchDecisions, getMonthlyUsage } from '@/app/actions/decisions';
-
 import crypto from 'crypto';
-
-const rateLimitMap = new Map<string, number>();
 
 export async function POST(request: Request) {
   try {
-    const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
-    const now = Date.now();
-    if (rateLimitMap.has(ip) && now - rateLimitMap.get(ip)! < 500) {
-      return new NextResponse('Rate limited', { status: 429 });
-    }
-    rateLimitMap.set(ip, now);
-
     const contentType = request.headers.get('content-type') || '';
-    
-    // Handle Slack Events API URL Verification
+
+    // ── Handle Slack Events API URL Verification (no signature needed) ──
     if (contentType.includes('application/json')) {
       const body = await request.json();
       if (body.type === 'url_verification') {
@@ -29,33 +19,38 @@ export async function POST(request: Request) {
 
     const bodyText = await request.text();
 
+    // ── S3: Slack signature verification is REQUIRED — hard fail if secret missing ──
     const secret = process.env.SLACK_SIGNING_SECRET;
-    if (secret) {
-      const timestamp = request.headers.get('x-slack-request-timestamp');
-      const signature = request.headers.get('x-slack-signature');
-      
-      if (!timestamp || !signature) {
-        return new NextResponse('Missing signature', { status: 401 });
-      }
+    if (!secret) {
+      console.error('SLACK_SIGNING_SECRET is not set — refusing all requests.');
+      return new NextResponse('Server misconfiguration', { status: 500 });
+    }
 
-      const time = parseInt(timestamp, 10);
-      if (Math.abs(Date.now() / 1000 - time) > 300) {
-        return new NextResponse('Replay attack detected', { status: 401 });
-      }
+    const timestamp = request.headers.get('x-slack-request-timestamp');
+    const signature = request.headers.get('x-slack-signature');
 
-      const sigBaseString = `v0:${timestamp}:${bodyText}`;
-      const mySignature = 'v0=' + crypto.createHmac('sha256', secret).update(sigBaseString, 'utf8').digest('hex');
-      try {
-        if (!crypto.timingSafeEqual(Buffer.from(mySignature), Buffer.from(signature))) {
-          return new NextResponse('Invalid signature', { status: 401 });
-        }
-      } catch {
-        return new NextResponse('Invalid signature length mismatch', { status: 401 });
+    if (!timestamp || !signature) {
+      return new NextResponse('Missing signature', { status: 401 });
+    }
+
+    // Reject requests older than 5 minutes — prevents replay attacks
+    const time = parseInt(timestamp, 10);
+    if (Math.abs(Date.now() / 1000 - time) > 300) {
+      return new NextResponse('Replay attack detected', { status: 401 });
+    }
+
+    const sigBaseString = `v0:${timestamp}:${bodyText}`;
+    const mySignature = 'v0=' + crypto.createHmac('sha256', secret).update(sigBaseString, 'utf8').digest('hex');
+    try {
+      if (!crypto.timingSafeEqual(Buffer.from(mySignature), Buffer.from(signature))) {
+        return new NextResponse('Invalid signature', { status: 401 });
       }
+    } catch {
+      return new NextResponse('Invalid signature', { status: 401 });
     }
 
     const params = new URLSearchParams(bodyText);
-    
+
     const command = params.get('command');
     const text = params.get('text') || '';
     const workspace_id = params.get('team_id');
@@ -125,9 +120,9 @@ export async function POST(request: Request) {
         });
       }
 
-      // Check current quota metrics for Free users (bypassing any request memoization)
+      // Check current quota for Free users — passes Date.now() to bypass server action memoization
       const usage = await getMonthlyUsage(workspace_id, Date.now());
-      
+
       const tagLine = tagsArray.length > 0
         ? `\n🏷️ Tags: ${tagsArray.map(t => `#${t}`).join(' ')}`
         : '';
@@ -157,7 +152,6 @@ export async function POST(request: Request) {
           });
           baseBlocks.push(upgradeButtonAction);
         }
-        // At exactly 25 or more, the next call will reject entirely via logDecision's limit.
       }
 
       return NextResponse.json({

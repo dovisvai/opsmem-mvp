@@ -7,6 +7,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage } from '@/app/actions/decisions';
 import { getWorkspaceMembers, createInvite, WorkspaceMember } from '@/app/actions/team';
 import { createCustomerPortalSession } from '@/app/actions/stripe';
+import { useScrolled } from '@/lib/hooks/use-scrolled';
 
 export default function DashboardPage() {
   return (
@@ -40,13 +41,14 @@ function DashboardContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [monthlyCount, setMonthlyCount] = useState(0);
-  const [isPro, setIsPro] = useState(false);
+  const [isPro, setIsPro] = useState(false); // kept for getMonthlyUsage return shape compatibility
   const [tier, setTier] = useState<'free' | 'pro' | 'business'>('free');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rawSub, setRawSub] = useState<any>(null);
   const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
   const [isManagingPlan, setIsManagingPlan] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const scrolled = useScrolled();
   const FREE_LIMIT = 25;
 
   // Modal state
@@ -217,15 +219,14 @@ function DashboardContent() {
     <div className="min-h-screen bg-background text-foreground flex flex-col" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
 
       {/* ── NAV ── */}
-      <header className="border-b-2 border-foreground/30 px-6 py-3 flex items-center justify-between sticky top-0 bg-background z-40">
+      <header className={`nav-header border-b-0 px-6 py-3 flex items-center justify-between ${scrolled ? 'nav-scrolled' : ''}`}>
         <div className="flex items-center gap-4">
           <Image
             src="/opsmem-logo.png"
             alt="OpsMem"
             width={32}
             height={32}
-            style={{ imageRendering: 'pixelated', filter: 'invert(1)' }}
-            className="opacity-90"
+            className="th-logo opacity-90"
           />
           <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
           <span className="text-foreground/20 hidden sm:inline">|</span>
@@ -286,15 +287,6 @@ function DashboardContent() {
 
       <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
 
-        {/* ── DEBUG PANEL (TEMPORARY) ── */}
-        <div className="p-4 border border-dashed border-red-500/50 bg-red-950/20 font-mono text-xs text-red-200 uppercase tracking-widest break-all">
-          <div className="mb-2 text-red-400 font-black">⚙️ DEBUG PANEL — SUBSCRIPTION SYNC ⚙️</div>
-          <div>Workspace ID: {workspaceId || 'none'}</div>
-          <div>Computed Tier: {tier}</div>
-          <div className="mt-2 text-foreground/50 lowercase whitespace-pre-wrap">
-            {rawSub ? `Subscription data: ${JSON.stringify({ ...rawSub, tier }, null, 2)}` : 'No subscription row found in Supabase.'}
-          </div>
-        </div>
 
         {/* ── STATS CARDS ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-foreground/20">

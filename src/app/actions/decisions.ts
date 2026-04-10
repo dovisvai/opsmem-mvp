@@ -18,9 +18,22 @@ const searchDecisionsSchema = z.object({
   workspaceId: z.string().min(1),
 });
 
+// S2: Hard fail if OPENAI_API_KEY is not configured — no silent dummy key
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error('Missing required env var: OPENAI_API_KEY');
+}
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'dummy_key',
+  apiKey: process.env.OPENAI_API_KEY,
 });
+
+// O6: Shared helper — avoids duplicating this 3-line calculation in every function
+function getStartOfMonth(): Date {
+  const d = new Date();
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 
 export async function logDecision(
   text: string,
@@ -36,11 +49,7 @@ export async function logDecision(
     }
 
     const supabaseAdmin = createAdminClient();
-
-    // Check free-tier usage. Hard-block at 25/month unless workspace has active subscription.
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    const startOfMonth = getStartOfMonth();
 
     const { count } = await supabaseAdmin
       .from('decisions')
@@ -57,12 +66,10 @@ export async function logDecision(
         .maybeSingle();
 
       if (!sub) {
-        // Hard limit reached — do NOT insert.
         return { success: false, requiresUpgrade: true, error: 'Free plan limit reached (25 decisions/month). Upgrade for unlimited logging.' };
       }
     }
 
-    // Always generate embedding and insert the row.
     const embeddingResponse = await openai.embeddings.create({
       model: 'text-embedding-3-small',
       input: parsed.data.text,
@@ -87,15 +94,13 @@ export async function logDecision(
   }
 }
 
-// Return current month's decision count and the free plan limit.
+// Return current month's decision count and subscription tier.
 export async function getMonthlyUsage(workspaceId: string, _forceRefresh?: number) {
   try {
-    if (!workspaceId) return { success: false, count: 0, limit: 25, isPro: false };
+    if (!workspaceId) return { success: false, count: 0, limit: 25, isPro: false, tier: 'free' as const, rawSub: null };
 
     const supabaseAdmin = createAdminClient();
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    const startOfMonth = getStartOfMonth();
 
     const { count } = await supabaseAdmin
       .from('decisions')
@@ -110,6 +115,7 @@ export async function getMonthlyUsage(workspaceId: string, _forceRefresh?: numbe
       .in('status', ['active', 'trialing'])
       .maybeSingle();
 
+    // If user explicitly requested a refresh, validate sub live against Stripe API
     if (sub && _forceRefresh && sub.stripe_subscription_id) {
       const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
       if (stripeSecretKey) {
@@ -120,31 +126,26 @@ export async function getMonthlyUsage(workspaceId: string, _forceRefresh?: numbe
             await supabaseAdmin.from('subscriptions')
               .delete()
               .eq('stripe_subscription_id', sub.stripe_subscription_id);
-            return { success: true, count: count || 0, limit: 25, isPro: false, tier: 'free', rawSub: null };
+            return { success: true, count: count || 0, limit: 25, isPro: false, tier: 'free' as const, rawSub: null };
           }
         } catch (e) {
-          console.error('Failed to remotely verify Stripe sub:', e);
+          console.error('Failed to verify Stripe subscription remotely:', (e as Error).message);
         }
       }
     }
 
     let tier: 'free' | 'pro' | 'business' = 'free';
     if (sub) {
-      if (sub.price_id === process.env.STRIPE_BUSINESS_PRICE_ID) {
-        tier = 'business';
-      } else {
-        tier = 'pro'; // default any other active sub to pro to be safe
-      }
+      tier = sub.price_id === process.env.STRIPE_BUSINESS_PRICE_ID ? 'business' : 'pro';
     }
 
     return { success: true, count: count || 0, limit: 25, isPro: tier !== 'free', tier, rawSub: sub };
   } catch {
-    return { success: false, count: 0, limit: 25, isPro: false, tier: 'free', rawSub: null };
+    return { success: false, count: 0, limit: 25, isPro: false, tier: 'free' as const, rawSub: null };
   }
 }
 
 // Fetch ALL decisions for a workspace, ordered newest → oldest.
-// No semantic threshold — this is the authoritative full history query.
 export async function getAllDecisions(workspaceId: string) {
   try {
     if (!workspaceId) return { success: false, error: 'workspaceId required' };
@@ -189,7 +190,7 @@ export async function searchDecisions(query: string, workspaceId: string) {
 
     if (dbError) throw new Error('Search failed: ' + dbError.message);
 
-    // Fallback: if nothing above threshold, return the 3 closest by raw distance.
+    // Fallback: if nothing above threshold, return 3 closest by raw distance
     let results = data || [];
     if (results.length === 0) {
       const { data: fallback } = await supabaseAdmin.rpc('match_decisions', {

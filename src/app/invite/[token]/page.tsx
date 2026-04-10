@@ -55,7 +55,7 @@ export default function InvitePage() {
         {/* Logo */}
         <div className="text-center mb-10">
           <Image src="/opsmem-logo.png" alt="OpsMem" width={60} height={60}
-            style={{ imageRendering: 'pixelated', filter: 'invert(1)', display: 'inline-block' }} />
+            className="th-logo" style={{ imageRendering: 'pixelated', display: 'inline-block' }} />
           <div className="mt-3 font-black text-lg tracking-widest">OPSMEM</div>
         </div>
 

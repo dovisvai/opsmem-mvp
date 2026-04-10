@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { HomeNav } from '@/components/home-nav';
 
 export const metadata = {
   title: 'OpsMem — Team Decision Log',
@@ -12,24 +13,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)', fontFamily: '"Courier New", Courier, monospace' }}>
 
       {/* Nav */}
-      <nav className="th-divider border-b px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Image
-            src="/opsmem-logo.png"
-            alt="OpsMem"
-            width={32}
-            height={32}
-            className="th-logo"
-            priority
-          />
-          <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="th-nav-link text-xs tracking-widest transition-colors uppercase">Dashboard</Link>
-          <Link href="/pricing" className="th-nav-link text-xs tracking-widest transition-colors uppercase">Pricing</Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <HomeNav />
 
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center">

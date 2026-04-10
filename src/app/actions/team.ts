@@ -23,7 +23,7 @@ export async function getWorkspaceMembers(workspaceId: string) {
     const db = createAdminClient();
     const { data, error } = await db
       .from('workspace_members')
-      .select('*')
+      .select('id, workspace_id, user_email, user_name, role, invited_by, invite_token, accepted_at, created_at')
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: true });
 

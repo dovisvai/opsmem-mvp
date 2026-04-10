@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { createCheckoutSession } from '@/app/actions/stripe';
 import { useTransition, Suspense } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useScrolled } from '@/lib/hooks/use-scrolled';
 
 export default function PricingPage() {
   return (
@@ -24,6 +25,7 @@ function PricingContent() {
   const router = useRouter();
   const workspaceId = searchParams.get('workspace') || '';
   const [isPending, startTransition] = useTransition();
+  const scrolled = useScrolled();
 
   const handleUpgrade = (tier: 'pro' | 'business') => {
     if (!workspaceId) {
@@ -44,7 +46,7 @@ function PricingContent() {
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)', fontFamily: '"Courier New", Courier, monospace' }}>
 
       {/* Nav */}
-      <nav className="border-b th-divider px-8 py-4 flex items-center justify-between">
+      <nav className={`nav-header px-8 py-4 flex items-center justify-between ${scrolled ? 'nav-scrolled' : ''}`}>
         <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
           <Image src="/opsmem-logo.png" alt="OpsMem" width={32} height={32} className="th-logo" priority />
           <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
