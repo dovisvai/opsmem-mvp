@@ -29,8 +29,12 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="th-nav-link px-3 py-1.5 border th-border-medium text-xs font-black tracking-widest transition-all uppercase hidden sm:flex items-center gap-1.5"
-      style={{ fontFamily: '"Courier New", Courier, monospace', borderColor: 'var(--border-medium)' }}
+      className="th-nav-link text-xs font-black tracking-widest transition-all uppercase hidden sm:flex items-center gap-1.5 px-3 py-1.5 border"
+      style={{
+        fontFamily: '"Courier New", Courier, monospace',
+        borderColor: 'var(--border-medium)',
+        color: 'var(--text-muted)',
+      }}
     >
       {isDark ? (
         <>

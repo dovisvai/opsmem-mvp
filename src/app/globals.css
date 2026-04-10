@@ -42,42 +42,42 @@ html.dark {
 }
 
 /* ─────────────────────────────────────────────
-   LIGHT THEME (explicit .light class)
+   LIGHT THEME — pure white + solid black
 ───────────────────────────────────────────── */
 html.light {
-  --background: #f4f4f0;
-  --foreground: #0a0a0a;
-  --card: #e4e4e0;
-  --card-hover: rgba(0,0,0,0.04);
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #f0f0f0;
+  --card-hover: rgba(0,0,0,0.06);
 
-  /* Border opacities */
-  --border-strong:  rgba(0,0,0,0.5);
-  --border-medium:  rgba(0,0,0,0.18);
-  --border-soft:    rgba(0,0,0,0.10);
-  --border-faint:   rgba(0,0,0,0.05);
+  /* Borders — solid, high contrast */
+  --border-strong:  #000000;
+  --border-medium:  rgba(0,0,0,0.35);
+  --border-soft:    rgba(0,0,0,0.18);
+  --border-faint:   rgba(0,0,0,0.08);
 
-  /* Text opacities */
-  --text-muted:     rgba(10,10,10,0.65);
-  --text-dim:       rgba(10,10,10,0.55);
-  --text-dimmer:    rgba(10,10,10,0.45);
-  --text-dimmest:   rgba(10,10,10,0.35);
-  --text-ghost:     rgba(10,10,10,0.25);
+  /* Text — high contrast on white */
+  --text-muted:     rgba(0,0,0,0.70);
+  --text-dim:       rgba(0,0,0,0.60);
+  --text-dimmer:    rgba(0,0,0,0.50);
+  --text-dimmest:   rgba(0,0,0,0.40);
+  --text-ghost:     rgba(0,0,0,0.30);
 
-  /* Button inverted (primary) */
-  --btn-primary-bg:   #0a0a0a;
-  --btn-primary-text: #f4f4f0;
-  --btn-primary-border: #0a0a0a;
-  --btn-primary-hover-bg:   #f4f4f0;
-  --btn-primary-hover-text: #0a0a0a;
+  /* Primary button — solid black fill, white text */
+  --btn-primary-bg:          #000000;
+  --btn-primary-text:        #ffffff;
+  --btn-primary-border:      #000000;
+  --btn-primary-hover-bg:    #ffffff;
+  --btn-primary-hover-text:  #000000;
 
-  /* Button secondary */
-  --btn-secondary-bg:   #f4f4f0;
-  --btn-secondary-text: #0a0a0a;
-  --btn-secondary-border: rgba(0,0,0,0.5);
-  --btn-secondary-hover-bg: #0a0a0a;
-  --btn-secondary-hover-text: #f4f4f0;
+  /* Secondary button — white fill, black border+text */
+  --btn-secondary-bg:          #ffffff;
+  --btn-secondary-text:        #000000;
+  --btn-secondary-border:      #000000;
+  --btn-secondary-hover-bg:    #000000;
+  --btn-secondary-hover-text:  #ffffff;
 
-  /* Logo filter: invert(0) keeps dark logo visible on light bg */
+  /* Logo filter: invert(0) keeps dark logo on white bg */
   --logo-filter: invert(0);
 }
 

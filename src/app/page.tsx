@@ -45,17 +45,17 @@ export default function Home() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mt-12">
           <Link href="/dashboard">
-            <button className="th-btn-primary px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer">
+            <button className="th-btn-primary w-full sm:w-auto px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px]">
               [ GO TO DASHBOARD ]
             </button>
           </Link>
           <Link href="/pricing">
-            <button className="th-btn-secondary px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer">
+            <button className="th-btn-secondary w-full sm:w-auto px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px]">
               [ VIEW PRICING ]
             </button>
           </Link>
           <a href="https://slack.com/oauth/v2/authorize" target="_blank" rel="noopener noreferrer">
-            <button className="th-btn-secondary px-8 py-4 font-black uppercase tracking-widest text-sm border-2 transition-all duration-100 cursor-pointer opacity-70 hover:opacity-100">
+            <button className="th-btn-secondary w-full sm:w-auto px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px]">
               [ ADD TO SLACK ]
             </button>
           </a>
