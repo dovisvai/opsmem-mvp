@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect, useCallback, Suspense } from 'react
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage } from '@/app/actions/decisions';
+import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage, deleteWorkspaceData } from '@/app/actions/decisions';
 import { getWorkspaceMembers, createInvite, WorkspaceMember } from '@/app/actions/team';
 import { createCustomerPortalSession } from '@/app/actions/stripe';
 import { useScrolled } from '@/lib/hooks/use-scrolled';
@@ -969,6 +969,33 @@ function DashboardContent() {
           </div>
         </div>
       )}
+
+      {/* ── DANGER ZONE ── */}
+      <div className="border-t border-red-500/20 px-6 py-6 mt-8 flex flex-col items-center text-center">
+        <h3 className="text-red-500/80 text-xl font-black uppercase tracking-widest mb-2">Danger Zone</h3>
+        <p className="text-foreground/40 text-xs max-w-md mb-4">
+          Permanently erase all decisions, tags, and subscriptions tied to this workspace. This action cannot be undone.
+        </p>
+        <button
+          onClick={async () => {
+            const confirmFirst = window.confirm('WARNING: This will permanently wipe your entire OpsMem workspace data (decisions, teammates, and tags). Are you completely sure you want to proceed?');
+            if (!confirmFirst) return;
+            const confirmSecond = window.confirm('FINAL WARNING: This cannot be undone. Click OK to permanently delete all data.');
+            if (!confirmSecond) return;
+            
+            const res = await deleteWorkspaceData(workspaceId!);
+            if (res.success) {
+              window.alert('Workspace data has been permanently deleted.');
+              router.push('/');
+            } else {
+              window.alert('Error deleting data: ' + res.error);
+            }
+          }}
+          className="px-6 py-3 border-2 border-red-500/50 text-red-500 text-xs font-black tracking-widest uppercase hover:bg-red-500 hover:text-background transition-colors"
+        >
+          [ DELETE DATA ]
+        </button>
+      </div>
 
       {/* ── FOOTER ── */}
       <footer className="border-t border-foreground/10 px-6 py-4 text-center text-foreground/15 text-xs tracking-widest uppercase">

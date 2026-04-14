@@ -79,7 +79,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t th-divider px-8 py-5 text-center th-text-ghost text-xs tracking-widest uppercase">
-        OPSMEM © {new Date().getFullYear()} — BUILT ON NEXT.JS · SUPABASE · OPENAI
+        OPSMEM © {new Date().getFullYear()} — BUILT ON NEXT.JS · SUPABASE · OPENAI — <Link href="/privacy" className="hover:text-foreground hover:underline transition-all">PRIVACY POLICY</Link>
       </footer>
     </div>
   );
