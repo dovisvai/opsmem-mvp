@@ -201,6 +201,22 @@ export async function searchDecisions(query: string, workspaceId: string) {
       });
       results = fallback || [];
     }
+    // Fetch missing user_ids for the results since match_decisions RPC doesn't return it
+    if (results.length > 0) {
+      const ids = results.map((r: { id: string }) => r.id);
+      const { data: userIdsData } = await supabaseAdmin
+        .from('decisions')
+        .select('id, user_id')
+        .in('id', ids);
+        
+      if (userIdsData) {
+        const userIdMap = new Map(userIdsData.map(r => [r.id, r.user_id]));
+        results = results.map((r: any) => ({
+          ...r,
+          user_id: userIdMap.get(r.id),
+        }));
+      }
+    }
 
     return { success: true, data: results };
   } catch (error: unknown) {

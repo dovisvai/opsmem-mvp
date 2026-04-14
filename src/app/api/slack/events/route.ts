@@ -187,14 +187,17 @@ export async function POST(request: Request) {
         { type: 'divider' },
       ];
 
-      matches.forEach((m: { similarity: number; text: string }) => {
+      matches.forEach((m: { similarity: number; text: string; user_id?: string; created_at?: string }) => {
         const pct = (m.similarity * 100).toFixed(1);
         const bar = m.similarity >= 0.75 ? '🟢' : m.similarity >= 0.65 ? '🟡' : '🔴';
+        const dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        const userTag = m.user_id ? `<@${m.user_id}>` : 'Unknown';
+        const meta = dateStr ? `_${dateStr} by ${userTag}_` : `_by ${userTag}_`;
         blocks.push({
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `${bar} *${pct}% match*\n${m.text}`
+            text: `${bar} *${pct}% match* • ${meta}\n${m.text}`
           }
         });
       });
