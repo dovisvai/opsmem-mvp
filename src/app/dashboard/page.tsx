@@ -221,8 +221,8 @@ function DashboardContent() {
     <div className="min-h-screen bg-background text-foreground flex flex-col" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
 
       {/* ── NAV ── */}
-      <header className={`nav-header border-b-0 px-6 py-3 flex items-center justify-between ${scrolled ? 'nav-scrolled' : ''}`}>
-        <div className="flex items-center gap-4">
+      <header className={`nav-header border-b-0 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4 ${scrolled ? 'nav-scrolled' : ''}`}>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <Image
             src="/opsmem-logo.png"
             alt="OpsMem"
@@ -230,12 +230,12 @@ function DashboardContent() {
             height={32}
             className="th-logo opacity-90"
           />
-          <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
-          <span className="text-foreground/20 hidden sm:inline">|</span>
+          <span className="font-black text-base tracking-widest uppercase">OPSMEM</span>
+          <span className="text-foreground/20">|</span>
           <span className="text-foreground/50 text-xs tracking-widest uppercase">Dashboard</span>
-          <span className="text-foreground/25 text-xs border border-foreground/20 px-2 py-0.5 hidden sm:inline">{workspaceId}</span>
+          <span className="text-foreground/25 text-xs border border-foreground/20 px-2 py-0.5">{workspaceId}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {statusMsg && (
             <span className={`text-xs font-mono ${statusMsg.startsWith('✓') ? 'text-green-400' : 'text-red-400'}`}>
               {statusMsg}
@@ -243,21 +243,21 @@ function DashboardContent() {
           )}
           {tier !== 'free' && rawSub?.status === 'active' ? (
             <>
-              <span className="px-3 py-1.5 border border-foreground/40 bg-foreground text-background text-xs font-black tracking-widest uppercase hidden sm:inline-flex items-center gap-1">
+              <span className="px-3 py-1.5 border border-foreground/40 bg-foreground text-background text-xs font-black tracking-widest uppercase inline-flex items-center gap-1">
                 ∞ PRO
               </span>
               <button
                 onClick={refreshPlan}
                 disabled={isRefreshingPlan}
                 title="Refresh plan status"
-                className="px-3 py-1.5 border border-foreground/20 text-foreground/40 text-xs font-black tracking-widest hover:border-foreground/50 hover:text-foreground/70 transition-all uppercase hidden sm:block disabled:opacity-30"
+                className="px-3 py-1.5 border border-foreground/20 text-foreground/40 text-xs font-black tracking-widest hover:border-foreground/50 hover:text-foreground/70 transition-all uppercase disabled:opacity-30"
               >
                 {isRefreshingPlan ? '...' : '↺'}
               </button>
               <button
                 onClick={handleManagePlan}
                 disabled={isManagingPlan}
-                className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase hidden sm:block disabled:opacity-30"
+                className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase disabled:opacity-30"
               >
                 {isManagingPlan ? 'LOADING...' : 'MANAGE SUB'}
               </button>
@@ -265,13 +265,13 @@ function DashboardContent() {
           ) : (
             <button
               onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
-              className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase hidden sm:block"
+              className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase"
               title="Upgrade your plan"
             >
               FREE PLAN ↑
             </button>
           )}
-          <div className="hidden sm:flex border border-foreground/30 ml-2">
+          <div className="flex border border-foreground/30 ml-0 sm:ml-2">
             <button
               onClick={() => setActiveTab('log')}
               className={`px-3 py-1.5 text-xs font-black tracking-widest transition-all uppercase ${activeTab === 'log' ? 'bg-foreground text-background' : 'text-foreground/60 hover:bg-foreground/10'}`}
@@ -287,7 +287,7 @@ function DashboardContent() {
           </div>
           <button
             onClick={() => setShowTeam(true)}
-            className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase hidden sm:block"
+            className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase"
           >
             TEAM {members.filter(m => m.accepted_at).length > 0 ? `(${members.filter(m => m.accepted_at).length})` : ''}
           </button>
