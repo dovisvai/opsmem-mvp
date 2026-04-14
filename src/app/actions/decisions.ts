@@ -153,7 +153,7 @@ export async function getAllDecisions(workspaceId: string) {
     const supabaseAdmin = createAdminClient();
     const { data, error } = await supabaseAdmin
       .from('decisions')
-      .select('id, text, tags, context, created_at')
+      .select('id, text, tags, context, created_at, user_id')
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
 

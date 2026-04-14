@@ -27,6 +27,7 @@ type Decision = {
   tags: string[];
   created_at: string;
   similarity?: number;
+  user_id?: string;
 };
 
 function DashboardContent() {
@@ -41,6 +42,7 @@ function DashboardContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [monthlyCount, setMonthlyCount] = useState(0);
+  const [activeTab, setActiveTab] = useState<'log' | 'analytics'>('log');
   const [isPro, setIsPro] = useState(false); // kept for getMonthlyUsage return shape compatibility
   const [tier, setTier] = useState<'free' | 'pro' | 'business'>('free');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -269,6 +271,20 @@ function DashboardContent() {
               FREE PLAN ↑
             </button>
           )}
+          <div className="hidden sm:flex border border-foreground/30 ml-2">
+            <button
+              onClick={() => setActiveTab('log')}
+              className={`px-3 py-1.5 text-xs font-black tracking-widest transition-all uppercase ${activeTab === 'log' ? 'bg-foreground text-background' : 'text-foreground/60 hover:bg-foreground/10'}`}
+            >
+              LOG
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`px-3 py-1.5 text-xs font-black tracking-widest transition-all uppercase border-l border-foreground/30 ${activeTab === 'analytics' ? 'bg-foreground text-background' : 'text-foreground/60 hover:bg-foreground/10'}`}
+            >
+              ANALYTICS
+            </button>
+          </div>
           <button
             onClick={() => setShowTeam(true)}
             className="px-3 py-1.5 border border-foreground/30 text-foreground/60 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase hidden sm:block"
@@ -287,9 +303,10 @@ function DashboardContent() {
 
       <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
 
-
-        {/* ── STATS CARDS ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-foreground/20">
+        {activeTab === 'log' && (
+          <>
+            {/* ── STATS CARDS ── */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-foreground/20">
           <StatCard label="TOTAL LOGGED" value={allDecisions.length.toString()} />
           <StatCard label="THIS MONTH" value={thisMonthCount.toString()} highlight={thisMonthCount > 0} />
 
@@ -613,7 +630,167 @@ function DashboardContent() {
             </div>
           </div>
         )}
+          </>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            {tier !== 'business' ? (
+              <div className="border border-foreground/20 p-12 text-center flex flex-col items-center justify-center">
+                <div className="text-4xl font-black mb-4">🔒</div>
+                <h2 className="text-2xl font-black uppercase tracking-widest mb-2">Advanced Analytics</h2>
+                <p className="text-foreground/60 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                  Unlock detailed trends, team member insights, top topic breakdown, and PDF/CSV exports with the Business plan.
+                </p>
+                <button
+                  onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
+                  className="px-6 py-3 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:opacity-80 transition-opacity"
+                >
+                  UPGRADE TO BUSINESS PLAN
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-8 animate-in fade-in duration-300">
+                {/* Header & Export */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-foreground/10 pb-4">
+                  <div>
+                    <h2 className="text-xl font-black uppercase tracking-widest">Team Insights</h2>
+                    <p className="text-foreground/50 text-xs mt-1">Detailed breakdown of decision data.</p>
+                  </div>
+                  <div className="flex gap-2 mt-4 sm:mt-0 print:hidden">
+                    <button
+                      onClick={() => {
+                        const rows = [['id', 'date', 'decision', 'tags', 'user_id'], ...allDecisions.map(d => [d.id, new Date(d.created_at).toISOString(), `"${d.text.replace(/"/g, '""')}"`, (d.tags || []).join(';'), d.user_id || ''])];
+                        const csv = rows.map(r => r.join(',')).join('\n');
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url; a.download = `analytics-${workspaceId}-${new Date().toISOString().split('T')[0]}.csv`;
+                        a.click(); URL.revokeObjectURL(url);
+                      }}
+                      className="px-3 py-1.5 border border-foreground/30 text-foreground/70 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase"
+                    >
+                      ↓ CSV
+                    </button>
+                    <button
+                      onClick={() => window.print()}
+                      className="px-3 py-1.5 border border-foreground/30 text-foreground/70 text-xs font-black tracking-widest hover:border-foreground hover:text-foreground transition-all uppercase"
+                    >
+                      ↓ PDF
+                    </button>
+                  </div>
+                </div>
+
+                {/* AI Summary */}
+                <div className="p-6 border border-foreground/20 bg-foreground/5">
+                  <div className="text-foreground/40 text-xs tracking-widest uppercase mb-2 flex items-center gap-2">
+                    <span>✨</span> AI INSIGHT SUMMARY
+                  </div>
+                  <div className="text-lg font-medium leading-relaxed">
+                    {thisMonthCount > 0 
+                      ? `Your team made ${thisMonthCount} decisions this month. Most common topic: ${topTags.length > 0 ? topTags[0][0].toUpperCase() : 'General'}.`
+                      : 'Not enough data this month to generate an insight. Log some decisions to see trends.'}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Decisions by Member */}
+                  <div className="border border-foreground/10 p-6">
+                    <div className="text-foreground/40 text-xs tracking-widest uppercase mb-4">Decisions by Member</div>
+                    <div className="space-y-4">
+                      {(() => {
+                        const memberCounts = allDecisions.reduce<Record<string, number>>((acc, d) => {
+                          const uid = d.user_id || 'Unknown';
+                          acc[uid] = (acc[uid] || 0) + 1;
+                          return acc;
+                        }, {});
+                        const sortedCounts = Object.entries(memberCounts).sort((a, b) => b[1] - a[1]);
+                        return sortedCounts.map(([uid, count]) => {
+                          const mem = members.find(m => m.id === uid);
+                          const displayName = mem?.user_name || mem?.user_email || uid;
+                          const pct = Math.round((count / Math.max(allDecisions.length, 1)) * 100);
+                          return (
+                            <div key={uid} className="flex items-center text-sm">
+                              <div className="w-1/3 truncate pr-2 font-mono" title={displayName}>{displayName}</div>
+                              <div className="w-2/3 flex items-center gap-2">
+                                <div className="h-4 bg-foreground" style={{ width: `${Math.max(pct, 2)}%` }}></div>
+                                <div className="text-foreground/50 text-xs w-8 text-right">{pct}%</div>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Top Tags Breakdown */}
+                  <div className="border border-foreground/10 p-6">
+                    <div className="text-foreground/40 text-xs tracking-widest uppercase mb-4">Topic Breakdown</div>
+                    <div className="space-y-4">
+                      {Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tag, count]) => {
+                        const pct = Math.round((count / Math.max(allTags.length, 1)) * 100);
+                        return (
+                          <div key={tag} className="flex items-center text-sm">
+                            <div className="w-1/3 truncate pr-2 font-mono uppercase text-xs">{tag}</div>
+                            <div className="w-2/3 flex items-center gap-2">
+                              <div className="h-4 bg-foreground/30" style={{ width: `${Math.max(pct, 2)}%` }}></div>
+                              <div className="text-foreground/50 text-xs w-8 text-right">{pct}%</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {Object.keys(tagCounts).length === 0 && <div className="text-foreground/40 text-xs">No tags found.</div>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trend Chart (Simple weekly/monthly buckets) */}
+                <div className="border border-foreground/10 p-6">
+                  <div className="text-foreground/40 text-xs tracking-widest uppercase mb-6">Activity Trend (Last 12 Weeks)</div>
+                  <div className="h-40 flex items-end justify-between gap-1 sm:gap-2">
+                    {(() => {
+                      if (allDecisions.length === 0) return <div className="w-full text-center text-xs text-foreground/40 py-10">No data</div>;
+                      
+                      // Create 12 buckets ending this week
+                      const now = new Date();
+                      const buckets = Array.from({ length: 12 }, (_, i) => {
+                        const d = new Date(now);
+                        d.setDate(d.getDate() - (11 - i) * 7);
+                        return { week: d, count: 0 };
+                      });
+                      
+                      allDecisions.forEach(d => {
+                        const date = new Date(d.created_at);
+                        const msDiff = now.getTime() - date.getTime();
+                        const weeksAgo = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
+                        if (weeksAgo >= 0 && weeksAgo < 12) {
+                          buckets[11 - weeksAgo].count++;
+                        }
+                      });
+                      
+                      const maxCount = Math.max(...buckets.map(b => b.count), 1);
+                      
+                      return buckets.map((b, i) => {
+                        const height = Math.max((b.count / maxCount) * 100, 2); // min 2%
+                        return (
+                          <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative">
+                            <div className="w-full bg-foreground transition-all duration-300" style={{ height: `${height}%` }}></div>
+                            <div className="opacity-0 group-hover:opacity-100 absolute -top-8 bg-foreground text-background text-xs px-2 py-1 pointer-events-none transition-opacity font-mono">
+                              {b.count}
+                            </div>
+                            <div className="text-[10px] mt-2 text-foreground/40 hidden sm:block">W{12 - i}</div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
 
       {/* ── LOG MODAL ── */}
       {showModal && (
