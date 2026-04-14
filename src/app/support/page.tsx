@@ -40,11 +40,13 @@ export default function SupportPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t th-divider px-8 py-5 text-center th-text-ghost text-xs tracking-widest uppercase flex gap-4 justify-center">
+      <footer className="border-t th-divider px-8 py-5 text-center th-text-ghost text-xs tracking-widest uppercase flex flex-col md:flex-row gap-4 justify-center items-center">
         <span>OPSMEM © {new Date().getFullYear()}</span>
-        <span>—</span>
+        <span className="hidden md:inline">—</span>
         <Link href="/privacy" className="hover:text-foreground hover:underline transition-all">PRIVACY</Link>
-        <span>—</span>
+        <span className="hidden md:inline">—</span>
+        <Link href="/terms" className="hover:text-foreground hover:underline transition-all">TERMS</Link>
+        <span className="hidden md:inline">—</span>
         <Link href="/support" className="hover:text-foreground hover:underline transition-all">SUPPORT</Link>
       </footer>
     </div>

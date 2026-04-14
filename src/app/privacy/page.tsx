@@ -80,6 +80,8 @@ export default function PrivacyPage() {
         <span className="hidden md:inline">—</span>
         <Link href="/privacy" className="hover:text-foreground hover:underline transition-all">PRIVACY</Link>
         <span className="hidden md:inline">—</span>
+        <Link href="/terms" className="hover:text-foreground hover:underline transition-all">TERMS</Link>
+        <span className="hidden md:inline">—</span>
         <Link href="/support" className="hover:text-foreground hover:underline transition-all">SUPPORT</Link>
       </footer>
     </div>
