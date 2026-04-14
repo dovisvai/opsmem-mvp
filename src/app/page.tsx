@@ -54,8 +54,8 @@ export default function Home() {
               [ VIEW PRICING ]
             </button>
           </Link>
-          <a href="https://slack.com/oauth/v2/authorize" target="_blank" rel="noopener noreferrer">
-            <button className="th-btn-secondary w-full sm:w-auto px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px]">
+          <a href={`https://slack.com/oauth/v2/authorize?client_id=${process.env.NEXT_PUBLIC_SLACK_CLIENT_ID}&scope=commands,chat:write&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/auth/slack/callback`} className="w-full sm:w-auto">
+            <button className="th-btn-secondary w-full px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px]">
               [ ADD TO SLACK ]
             </button>
           </a>

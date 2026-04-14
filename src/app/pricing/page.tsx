@@ -57,6 +57,9 @@ function PricingContent() {
               Dashboard
             </button>
           )}
+          <a href={`https://slack.com/oauth/v2/authorize?client_id=${process.env.NEXT_PUBLIC_SLACK_CLIENT_ID}&scope=commands,chat:write&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/auth/slack/callback`} className="th-btn-secondary px-3 py-1.5 border border-foreground/30 text-xs font-black transition-all hover:bg-foreground hover:text-background uppercase hidden sm:block">
+            Add to Slack
+          </a>
           <Link href="/" className="th-nav-link transition-colors uppercase">Home</Link>
           <ThemeToggle />
         </div>
