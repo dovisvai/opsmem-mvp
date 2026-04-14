@@ -39,6 +39,7 @@ export default function PrivacyPage() {
               <li><strong>Decision Vectors:</strong> Text submissions processed into mathematical vectors to enable seamless semantic searches.</li>
               <li><strong>Billing:</strong> Secure metadata handled directly by our payment processor.</li>
             </ul>
+            <p className="mt-4"><strong>Transient Data Notice:</strong> OpsMem may receive transient metadata from Slack (such as temporary slash command payloads, unmapped system events, or interactive webhook metadata) when the app is used. If this data is not specifically required to execute a decision log or system function as outlined above, it is never used, permanently ignored, and never stored.</p>
           </section>
 
           <section>
@@ -74,8 +75,12 @@ export default function PrivacyPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t th-divider px-8 py-5 text-center th-text-ghost text-xs tracking-widest uppercase">
-        OPSMEM © {new Date().getFullYear()} — <Link href="/privacy" className="hover:text-foreground hover:underline transition-all">PRIVACY POLICY</Link>
+      <footer className="border-t th-divider px-8 py-5 text-center th-text-ghost text-xs tracking-widest uppercase flex flex-col md:flex-row gap-4 justify-center items-center">
+        <span>OPSMEM © {new Date().getFullYear()}</span>
+        <span className="hidden md:inline">—</span>
+        <Link href="/privacy" className="hover:text-foreground hover:underline transition-all">PRIVACY</Link>
+        <span className="hidden md:inline">—</span>
+        <Link href="/support" className="hover:text-foreground hover:underline transition-all">SUPPORT</Link>
       </footer>
     </div>
   );

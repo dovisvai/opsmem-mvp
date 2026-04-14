@@ -78,8 +78,12 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t th-divider px-8 py-5 text-center th-text-ghost text-xs tracking-widest uppercase">
-        OPSMEM © {new Date().getFullYear()} — BUILT ON NEXT.JS · SUPABASE · OPENAI — <Link href="/privacy" className="hover:text-foreground hover:underline transition-all">PRIVACY POLICY</Link>
+      <footer className="border-t th-divider px-8 py-5 text-center th-text-ghost text-xs tracking-widest uppercase flex flex-col md:flex-row gap-4 justify-center items-center">
+        <span>OPSMEM © {new Date().getFullYear()}</span>
+        <span className="hidden md:inline">—</span>
+        <Link href="/privacy" className="hover:text-foreground hover:underline transition-all">PRIVACY</Link>
+        <span className="hidden md:inline">—</span>
+        <Link href="/support" className="hover:text-foreground hover:underline transition-all">SUPPORT</Link>
       </footer>
     </div>
   );
