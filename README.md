@@ -54,7 +54,7 @@ Go to **OAuth & Permissions**. Under Bot Token Scopes, ensure you have ONLY the 
 - `chat:write`
 
 **4. Install to Workspace**
-Scroll up to the top of **OAuth & Permissions** and click **Install to Workspace**. Once installed, copy the **Bot User OAuth Token** (`xoxb-...`) and save it to your `.env.local` as `SLACK_BOT_TOKEN`. Ensure your Vercel URL points to the `/api/slack/events` routing!
+Scroll up to the top of **OAuth & Permissions** and click **Install to Workspace**. Ensure your Vercel URL points to the `/api/slack/events` routing!
 
 ### Step: Run the database migration
 To set up your pgvector database for memory retrieval, copy the SQL located in `supabase/migrations/0001_create_decisions_table.sql`.
@@ -148,7 +148,6 @@ Deploying OpsMem to production takes just a few clicks thanks to Vercel and Supa
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `OPENAI_API_KEY`
-   - `SLACK_BOT_TOKEN`
    - `SLACK_SIGNING_SECRET`
    - `STRIPE_SECRET_KEY`
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
