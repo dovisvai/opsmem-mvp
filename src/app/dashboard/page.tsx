@@ -906,46 +906,63 @@ function DashboardContent() {
               {/* Invite link generator */}
               <div className="border-t border-foreground/10 pt-6">
                 <div className="text-foreground/40 text-xs tracking-widest uppercase mb-3">INVITE A TEAMMATE</div>
-                <p className="text-foreground/30 text-xs mb-4 leading-relaxed">
-                  Generate a shareable invite link. Anyone with the link can join this workspace.
-                </p>
-                {!inviteUrl ? (
-                  <button
-                    onClick={async () => {
-                      setIsGeneratingInvite(true);
-                      const result = await createInvite(workspaceId!, 'web-dashboard');
-                      if (result.success && result.inviteUrl) {
-                        setInviteUrl(result.inviteUrl);
-                      }
-                      setIsGeneratingInvite(false);
-                    }}
-                    disabled={isGeneratingInvite}
-                    className="w-full py-3 border-2 border-foreground text-foreground font-black text-xs tracking-widest uppercase hover:bg-foreground hover:text-background transition-all disabled:opacity-30"
-                  >
-                    {isGeneratingInvite ? 'GENERATING...' : '[ GENERATE INVITE LINK ]'}
-                  </button>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="border border-foreground/30 px-3 py-2 flex items-center gap-2">
-                      <code className="flex-1 text-xs text-foreground/70 font-mono truncate">{inviteUrl}</code>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(inviteUrl);
-                          setInviteCopied(true);
-                          setTimeout(() => setInviteCopied(false), 2000);
-                        }}
-                        className="text-xs border border-foreground/30 px-2 py-1 hover:border-foreground/60 hover:text-foreground text-foreground/50 transition-all shrink-0 font-mono"
-                      >
-                        {inviteCopied ? '✓ COPIED' : 'COPY'}
-                      </button>
-                    </div>
+                {tier === 'free' ? (
+                  <div className="text-center py-6 border border-foreground/10 bg-foreground/5">
+                    <div className="text-lg mb-2">🔒</div>
+                    <p className="text-foreground/60 text-xs tracking-widest uppercase mb-4">
+                      Team Invites require Pro Plan
+                    </p>
                     <button
-                      onClick={() => { setInviteUrl(''); setInviteCopied(false); }}
-                      className="text-xs text-foreground/25 hover:text-foreground/50 transition-colors"
+                      onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
+                      className="px-4 py-2 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:opacity-80 transition-opacity"
                     >
-                      Generate another ↺
+                      UPGRADE NOW
                     </button>
                   </div>
+                ) : (
+                  <>
+                    <p className="text-foreground/30 text-xs mb-4 leading-relaxed">
+                      Generate a shareable invite link. Anyone with the link can join this workspace.
+                    </p>
+                    {!inviteUrl ? (
+                      <button
+                        onClick={async () => {
+                          setIsGeneratingInvite(true);
+                          const result = await createInvite(workspaceId!, 'web-dashboard');
+                          if (result.success && result.inviteUrl) {
+                            setInviteUrl(result.inviteUrl);
+                          }
+                          setIsGeneratingInvite(false);
+                        }}
+                        disabled={isGeneratingInvite}
+                        className="w-full py-3 border-2 border-foreground text-foreground font-black text-xs tracking-widest uppercase hover:bg-foreground hover:text-background transition-all disabled:opacity-30"
+                      >
+                        {isGeneratingInvite ? 'GENERATING...' : '[ GENERATE INVITE LINK ]'}
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="border border-foreground/30 px-3 py-2 flex items-center gap-2">
+                          <code className="flex-1 text-xs text-foreground/70 font-mono truncate">{inviteUrl}</code>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(inviteUrl);
+                              setInviteCopied(true);
+                              setTimeout(() => setInviteCopied(false), 2000);
+                            }}
+                            className="text-xs border border-foreground/30 px-2 py-1 hover:border-foreground/60 hover:text-foreground text-foreground/50 transition-all shrink-0 font-mono"
+                          >
+                            {inviteCopied ? '✓ COPIED' : 'COPY'}
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => { setInviteUrl(''); setInviteCopied(false); }}
+                          className="text-xs text-foreground/25 hover:text-foreground/50 transition-colors"
+                        >
+                          Generate another ↺
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
