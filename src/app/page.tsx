@@ -54,11 +54,10 @@ export default function Home() {
               [ VIEW PRICING ]
             </button>
           </Link>
-          <a href={`https://slack.com/oauth/v2/authorize?client_id=${process.env.NEXT_PUBLIC_SLACK_CLIENT_ID}&scope=commands,chat:write&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/auth/slack/callback`} className="w-full sm:w-auto">
-            <button className="th-btn-secondary w-full px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px]">
-              [ ADD TO SLACK ]
-            </button>
-          </a>
+          <div className="flex items-center justify-center w-full sm:w-auto h-full min-h-[56px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <a href="https://slack.com/oauth/v2/authorize?client_id=10826535322675.10861212633408&scope=commands,chat:write&user_scope="><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
+          </div>
         </div>
 
         {/* Feature Grid */}

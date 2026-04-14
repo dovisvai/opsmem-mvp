@@ -57,9 +57,10 @@ function PricingContent() {
               Dashboard
             </button>
           )}
-          <a href={`https://slack.com/oauth/v2/authorize?client_id=${process.env.NEXT_PUBLIC_SLACK_CLIENT_ID}&scope=commands,chat:write&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/auth/slack/callback`} className="th-btn-secondary px-3 py-1.5 border border-foreground/30 text-xs font-black transition-all hover:bg-foreground hover:text-background uppercase hidden sm:block">
-            Add to Slack
-          </a>
+          <div className="hidden sm:flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <a href="https://slack.com/oauth/v2/authorize?client_id=10826535322675.10861212633408&scope=commands,chat:write&user_scope="><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
+          </div>
           <Link href="/" className="th-nav-link transition-colors uppercase">Home</Link>
           <ThemeToggle />
         </div>
