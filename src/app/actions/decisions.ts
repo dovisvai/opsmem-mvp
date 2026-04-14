@@ -134,12 +134,12 @@ export async function getMonthlyUsage(workspaceId: string, _forceRefresh?: numbe
       }
     }
 
-    let tier: 'free' | 'pro' | 'business' = 'free';
+    let tier: 'free' | 'pro' = 'free';
     if (sub) {
-      tier = sub.price_id === process.env.STRIPE_BUSINESS_PRICE_ID ? 'business' : 'pro';
+      tier = 'pro';
     }
 
-    return { success: true, count: count || 0, limit: 25, isPro: tier !== 'free', tier, rawSub: sub };
+    return { success: true, count: count || 0, limit: 25, isPro: tier === 'pro', tier, rawSub: sub };
   } catch {
     return { success: false, count: 0, limit: 25, isPro: false, tier: 'free' as const, rawSub: null };
   }

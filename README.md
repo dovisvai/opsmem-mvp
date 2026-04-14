@@ -72,7 +72,7 @@ If you plan to utilize Stripe, please run `supabase/migrations/0003_create_subsc
 
 ## Stripe Setup Guide
 
-OpsMem supports three pricing tiers: **Free**, **$19.99/month Pro**, and **$49.99/month Business**. The integration supports both **test mode** and **live mode** automatically — just swap in the corresponding keys.
+OpsMem supports two pricing tiers: **Free** and **$19.99/month Pro**. The integration supports both **test mode** and **live mode** automatically — just swap in the corresponding keys.
 
 ### Required Environment Variables
 
@@ -82,7 +82,6 @@ OpsMem supports three pricing tiers: **Free**, **$19.99/month Pro**, and **$49.9
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard → Developers → API Keys | `pk_test_...` or `pk_live_...` |
 | `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Developers → Webhooks (after adding endpoint) | `whsec_...` |
 | `STRIPE_PRO_PRICE_ID` | Stripe Dashboard → Products → your Pro product → Price | `price_...` |
-| `STRIPE_BUSINESS_PRICE_ID` | Stripe Dashboard → Products → your Business product → Price | `price_...` |
 
 > **Test vs Live mode**: Use `sk_test_` / `pk_test_` keys during development and `sk_live_` / `pk_live_` for production. The price IDs are different per mode — make sure you copy the correct ones.
 
@@ -90,7 +89,6 @@ OpsMem supports three pricing tiers: **Free**, **$19.99/month Pro**, and **$49.9
 
 1. Go to [dashboard.stripe.com/products](https://dashboard.stripe.com/products) and click **+ Add Product**.
 2. Set the name to **OpsMem Pro**, price to **$19.99 USD**, billing period **Monthly**. Save it and copy the **Price ID** to `STRIPE_PRO_PRICE_ID`.
-3. Create another product named **OpsMem Business**, price to **$49.99 USD**, billing period **Monthly**. Save it and copy the **Price ID** to `STRIPE_BUSINESS_PRICE_ID` in your `.env.local`.
 
 ### Step 2 — Add API Keys
 
@@ -156,7 +154,6 @@ Deploying OpsMem to production takes just a few clicks thanks to Vercel and Supa
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
    - `STRIPE_WEBHOOK_SECRET`
    - `STRIPE_PRO_PRICE_ID` ← your `price_...` string from Stripe
-   - `STRIPE_BUSINESS_PRICE_ID` ← your `price_...` string from Stripe
    - `NEXT_PUBLIC_APP_URL` ← your production URL
 
 3. **Set Up Stripe Webhook** — Follow [Step 3 in the Stripe Setup Guide](#step-3--configure-webhooks) above, using your Vercel domain.

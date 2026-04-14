@@ -108,7 +108,7 @@ export async function POST(request: Request) {
             blocks: [
               {
                 type: 'section',
-                text: { type: 'mrkdwn', text: `🚨 Free plan limit reached (25/25). No more decisions can be logged this month. Upgrade to Pro or Business for unlimited logging.` }
+                text: { type: 'mrkdwn', text: `🚨 Free plan limit reached (25/25). No more decisions can be logged this month. Upgrade to Pro for unlimited logging.` }
               },
               upgradeButtonAction
             ]

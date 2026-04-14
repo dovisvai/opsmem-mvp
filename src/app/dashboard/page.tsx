@@ -44,7 +44,7 @@ function DashboardContent() {
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [activeTab, setActiveTab] = useState<'log' | 'analytics'>('log');
   const [isPro, setIsPro] = useState(false); // kept for getMonthlyUsage return shape compatibility
-  const [tier, setTier] = useState<'free' | 'pro' | 'business'>('free');
+  const [tier, setTier] = useState<'free' | 'pro'>('free');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rawSub, setRawSub] = useState<any>(null);
   const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
@@ -86,7 +86,7 @@ function DashboardContent() {
       if (usageResult.success) {
         setMonthlyCount(usageResult.count);
         setIsPro(usageResult.isPro);
-        setTier((usageResult.tier as 'free' | 'pro' | 'business') || 'free');
+        setTier((usageResult.tier as 'free' | 'pro') || 'free');
         setRawSub(usageResult.rawSub || null);
       }
       if (teamResult.success) setMembers(teamResult.data);
@@ -103,7 +103,7 @@ function DashboardContent() {
       if (usageResult.success) {
         setMonthlyCount(usageResult.count);
         setIsPro(usageResult.isPro);
-        setTier((usageResult.tier as 'free' | 'pro' | 'business') || 'free');
+        setTier((usageResult.tier as 'free' | 'pro') || 'free');
         setRawSub(usageResult.rawSub || null);
       }
     } finally {
@@ -244,7 +244,7 @@ function DashboardContent() {
           {tier !== 'free' && rawSub?.status === 'active' ? (
             <>
               <span className="px-3 py-1.5 border border-foreground/40 bg-foreground text-background text-xs font-black tracking-widest uppercase hidden sm:inline-flex items-center gap-1">
-                ∞ {tier === 'business' ? 'BUSINESS' : 'PRO'}
+                ∞ PRO
               </span>
               <button
                 onClick={refreshPlan}
@@ -432,12 +432,12 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* ── EXPORT ROW (Business only) ── */}
+        {/* ── EXPORT ROW (Pro only) ── */}
         <div className="flex items-center justify-between border border-foreground/10 px-4 py-2.5">
           <span className="text-xs text-foreground/40 tracking-widest uppercase font-mono">
-            {tier === 'business' ? `Export ${allDecisions.length} decisions` : '⬇ Data Export'}
+            {tier === 'pro' ? `Export ${allDecisions.length} decisions` : '⬇ Data Export'}
           </span>
-          {tier === 'business' ? (
+          {tier === 'pro' ? (
             <div className="flex gap-2">
               <button
                 onClick={() => {
@@ -504,7 +504,7 @@ function DashboardContent() {
               onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
               className="text-xs text-foreground/30 border border-foreground/10 px-3 py-1.5 hover:border-foreground/30 hover:text-foreground/50 transition-all tracking-widest uppercase font-mono"
             >
-              🔒 Business plan only — upgrade ↑
+              🔒 Pro plan only — upgrade ↑
             </button>
           )}
         </div>
@@ -635,18 +635,18 @@ function DashboardContent() {
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            {tier !== 'business' ? (
+            {tier !== 'pro' ? (
               <div className="border border-foreground/20 p-12 text-center flex flex-col items-center justify-center">
                 <div className="text-4xl font-black mb-4">🔒</div>
                 <h2 className="text-2xl font-black uppercase tracking-widest mb-2">Advanced Analytics</h2>
                 <p className="text-foreground/60 text-sm max-w-md mx-auto mb-8 leading-relaxed">
-                  Unlock detailed trends, team member insights, top topic breakdown, and PDF/CSV exports with the Business plan.
+                  Unlock detailed trends, team member insights, top topic breakdown, and PDF/CSV exports with the Pro plan.
                 </p>
                 <button
                   onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
                   className="px-6 py-3 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:opacity-80 transition-opacity"
                 >
-                  UPGRADE TO BUSINESS PLAN
+                  UPGRADE TO PRO PLAN
                 </button>
               </div>
             ) : (

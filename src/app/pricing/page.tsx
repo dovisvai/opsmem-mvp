@@ -27,13 +27,13 @@ function PricingContent() {
   const [isPending, startTransition] = useTransition();
   const scrolled = useScrolled();
 
-  const handleUpgrade = (tier: 'pro' | 'business') => {
+  const handleUpgrade = () => {
     if (!workspaceId) {
       alert('Please add your Slack workspace ID to the URL to upgrade.\n\nExample: /pricing?workspace=YOUR_TEAM_ID');
       return;
     }
     startTransition(async () => {
-      const result = await createCheckoutSession(workspaceId, tier);
+      const result = await createCheckoutSession(workspaceId);
       if (result?.url) {
         window.location.href = result.url;
       } else {
@@ -81,7 +81,7 @@ function PricingContent() {
         </div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-0 border-2 th-border-strong">
+        <div className="grid md:grid-cols-2 max-w-3xl mx-auto gap-0 border-2 th-border-strong">
 
           {/* Free Plan */}
           <div className="p-8 border-r th-border-medium flex flex-col">
@@ -114,55 +114,24 @@ function PricingContent() {
           </div>
 
           {/* Pro Plan */}
-          <div className="p-8 border-r th-border-medium flex flex-col relative" style={{ background: 'var(--card)' }}>
-            <div className="mb-8">
-              <div className="text-xs tracking-widest th-text-dim uppercase mb-3">PRO UNLIMITED</div>
-              <div className="text-6xl font-black mb-1">$19<span className="text-3xl">.99</span></div>
-              <div className="th-text-dim text-xs tracking-widest">/ MONTH — CANCEL ANYTIME</div>
-            </div>
-
-            <ul className="space-y-3 flex-1 mb-8">
-              {[
-                'Unlimited decisions / month',
-                'Team invites allowed',
-                'Priority OpenAI embeddings',
-                'Full Slack integration',
-              ].map(f => (
-                <li key={f} className="flex items-start gap-3 text-sm th-text-muted">
-                  <span className="th-text-dimmer mt-0.5 shrink-0">▸</span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-
-            <button
-              onClick={() => handleUpgrade('pro')}
-              disabled={isPending}
-              className="th-btn-primary w-full py-3 text-xs font-black tracking-widest uppercase border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {isPending ? '[ CONNECTING... ]' : '[ UPGRADE TO PRO ]'}
-            </button>
-          </div>
-
-          {/* Business Plan — stays inverted for visual distinction */}
           <div className="p-8 flex flex-col relative" style={{ background: 'var(--foreground)', color: 'var(--background)' }}>
             <div className="absolute top-0 right-0 text-xs font-black tracking-widest px-3 py-1 uppercase" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
               RECOMMENDED
             </div>
 
             <div className="mb-8">
-              <div className="text-xs tracking-widest uppercase mb-3 opacity-50">BUSINESS</div>
-              <div className="text-6xl font-black mb-1">$49<span className="text-3xl">.99</span></div>
+              <div className="text-xs tracking-widest uppercase mb-3 opacity-50">PRO UNLIMITED</div>
+              <div className="text-6xl font-black mb-1">$19<span className="text-3xl">.99</span></div>
               <div className="text-xs tracking-widest opacity-50">/ MONTH — CANCEL ANYTIME</div>
             </div>
 
             <ul className="space-y-3 flex-1 mb-8">
               {[
-                'Unlimited everything',
-                'Advanced analytics',
-                'Export data to CSV/JSON',
-                'Priority support SLA',
+                'Unlimited decisions / month',
                 'Team invites allowed',
+                'Advanced analytics & exports (CSV/PDF)',
+                'Priority OpenAI semantic models',
+                'Priority Slack Support SLA',
               ].map(f => (
                 <li key={f} className="flex items-start gap-3 text-sm" style={{ opacity: 0.85 }}>
                   <span className="mt-0.5 shrink-0 opacity-50">▸</span>
@@ -172,7 +141,7 @@ function PricingContent() {
             </ul>
 
             <button
-              onClick={() => handleUpgrade('business')}
+              onClick={() => handleUpgrade()}
               disabled={isPending}
               className="w-full py-3 text-xs font-black tracking-widest uppercase border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
@@ -192,6 +161,9 @@ function PricingContent() {
               {isPending ? '[ CONNECTING... ]' : '[ UPGRADE NOW ]'}
             </button>
           </div>
+
+
+
         </div>
 
         {/* Bottom note */}
