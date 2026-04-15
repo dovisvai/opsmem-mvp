@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback, Suspense } from 'react';
+import { useState, useTransition, useEffect, useCallback, Suspense, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { AreaChart, Area, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage, deleteWorkspaceData } from '@/app/actions/decisions';
 import { getWorkspaceMembers, createInvite, WorkspaceMember } from '@/app/actions/team';
@@ -59,6 +60,7 @@ function DashboardContent() {
   const [newTags, setNewTags] = useState('');
   const [statusMsg, setStatusMsg] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [aiText, setAiText] = useState('');
 
   // Team modal state
   const [showTeam, setShowTeam] = useState(false);
@@ -200,6 +202,41 @@ function DashboardContent() {
     acc[t] = (acc[t] || 0) + 1; return acc;
   }, {});
   const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+  // Memoized Chart Data
+  const chartData = useMemo(() => {
+    const buckets = Array.from({ length: 12 }, (_, i) => ({
+      name: `W${i + 1}`,
+      decisions: 0
+    }));
+    allDecisions.forEach(d => {
+      const msDiff = new Date().getTime() - new Date(d.created_at).getTime();
+      const weeksAgo = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
+      if (weeksAgo >= 0 && weeksAgo < 12) {
+        buckets[11 - weeksAgo].decisions++;
+      }
+    });
+    return buckets;
+  }, [allDecisions]);
+
+  // AI Summary Hook
+  const fullAiMsg = useMemo(() => {
+    return thisMonthCount > 0 
+      ? `Your team made ${thisMonthCount} decisions this month. Most common topic: ${topTags.length > 0 ? topTags[0][0].toUpperCase() : 'General'}.`
+      : 'Not enough data this month to generate an insight. Log some decisions to see trends.';
+  }, [thisMonthCount, topTags]);
+
+  useEffect(() => {
+    if (activeTab !== 'analytics') return;
+    setAiText('');
+    let i = 0;
+    const interval = setInterval(() => {
+      setAiText(fullAiMsg.substring(0, i));
+      i++;
+      if (i > fullAiMsg.length) clearInterval(interval);
+    }, 25);
+    return () => clearInterval(interval);
+  }, [fullAiMsg, activeTab]);
 
   if (!workspaceId) {
     return (
@@ -650,7 +687,7 @@ function DashboardContent() {
                 </button>
               </div>
             ) : (
-              <div className="space-y-8 animate-in fade-in duration-300">
+              <div className="space-y-8 animate-in fade-in duration-300 pb-12">
                 {/* Header & Export */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-foreground/10 pb-4">
                   <div>
@@ -682,22 +719,21 @@ function DashboardContent() {
                 </div>
 
                 {/* AI Summary */}
-                <div className="p-6 border border-foreground/20 bg-foreground/5">
-                  <div className="text-foreground/40 text-xs tracking-widest uppercase mb-2 flex items-center gap-2">
-                    <span>✨</span> AI INSIGHT SUMMARY
+                <div className="p-6 border border-foreground/20 bg-foreground/5 relative overflow-hidden shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-shadow">
+                  <div className="text-foreground/80 text-xs tracking-widest uppercase mb-2 flex items-center gap-2">
+                    <span className="animate-pulse">✨</span> AI INSIGHT SUMMARY
                   </div>
-                  <div className="text-lg font-medium leading-relaxed">
-                    {thisMonthCount > 0 
-                      ? `Your team made ${thisMonthCount} decisions this month. Most common topic: ${topTags.length > 0 ? topTags[0][0].toUpperCase() : 'General'}.`
-                      : 'Not enough data this month to generate an insight. Log some decisions to see trends.'}
+                  <div className="text-lg font-medium leading-relaxed min-h-[1.75rem]">
+                    {aiText}
+                    <span className="inline-block w-2 bg-foreground h-4 ml-1 animate-pulse"></span>
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* Decisions by Member */}
                   <div className="border border-foreground/10 p-6">
-                    <div className="text-foreground/40 text-xs tracking-widest uppercase mb-4">Decisions by Member</div>
-                    <div className="space-y-4">
+                    <div className="text-foreground/40 text-xs tracking-widest uppercase mb-6">Decisions by Member</div>
+                    <div className="space-y-5">
                       {(() => {
                         const memberCounts = allDecisions.reduce<Record<string, number>>((acc, d) => {
                           const uid = d.user_id || 'Unknown';
@@ -710,11 +746,13 @@ function DashboardContent() {
                           const displayName = mem?.user_name || mem?.user_email || uid;
                           const pct = Math.round((count / Math.max(allDecisions.length, 1)) * 100);
                           return (
-                            <div key={uid} className="flex items-center text-sm">
+                            <div key={uid} className="flex items-center text-sm gap-3">
+                              {/* Dicebear Avatar Injection */}
+                              <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=${uid}`} alt="avatar" className="w-8 h-8 rounded-full bg-foreground/5 p-1 border border-foreground/10" />
                               <div className="w-1/3 truncate pr-2 font-mono" title={displayName}>{displayName}</div>
                               <div className="w-2/3 flex items-center gap-2">
-                                <div className="h-4 bg-foreground" style={{ width: `${Math.max(pct, 2)}%` }}></div>
-                                <div className="text-foreground/50 text-xs w-8 text-right">{pct}%</div>
+                                <div className="h-2 rounded-sm bg-foreground/90 transition-all duration-1000" style={{ width: `${Math.max(pct, 2)}%` }}></div>
+                                <div className="text-foreground/50 text-xs w-8 text-right tabular-nums font-mono">{pct}%</div>
                               </div>
                             </div>
                           );
@@ -725,16 +763,18 @@ function DashboardContent() {
 
                   {/* Top Tags Breakdown */}
                   <div className="border border-foreground/10 p-6">
-                    <div className="text-foreground/40 text-xs tracking-widest uppercase mb-4">Topic Breakdown</div>
-                    <div className="space-y-4">
+                    <div className="text-foreground/40 text-xs tracking-widest uppercase mb-6">Topic Breakdown</div>
+                    <div className="space-y-6">
                       {Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tag, count]) => {
                         const pct = Math.round((count / Math.max(allTags.length, 1)) * 100);
                         return (
-                          <div key={tag} className="flex items-center text-sm">
-                            <div className="w-1/3 truncate pr-2 font-mono uppercase text-xs">{tag}</div>
-                            <div className="w-2/3 flex items-center gap-2">
-                              <div className="h-4 bg-foreground/30" style={{ width: `${Math.max(pct, 2)}%` }}></div>
-                              <div className="text-foreground/50 text-xs w-8 text-right">{pct}%</div>
+                          <div key={tag} className="flex flex-col text-sm gap-1.5">
+                            <div className="flex justify-between items-end">
+                              <span className="font-mono uppercase text-xs px-2 py-0.5 bg-foreground text-background font-bold tracking-widest">{tag}</span>
+                              <span className="text-foreground/50 text-xs tabular-nums font-mono">{pct}%</span>
+                            </div>
+                            <div className="w-full bg-foreground/10 h-1 rounded-sm overflow-hidden mt-1">
+                              <div className="h-full bg-foreground transition-all duration-1000 delay-100" style={{ width: `${Math.max(pct, 2)}%` }}></div>
                             </div>
                           </div>
                         );
@@ -744,46 +784,32 @@ function DashboardContent() {
                   </div>
                 </div>
 
-                {/* Trend Chart (Simple weekly/monthly buckets) */}
-                <div className="border border-foreground/10 p-6">
-                  <div className="text-foreground/40 text-xs tracking-widest uppercase mb-6">Activity Trend (Last 12 Weeks)</div>
-                  <div className="h-40 flex items-end justify-between gap-1 sm:gap-2">
-                    {(() => {
-                      if (allDecisions.length === 0) return <div className="w-full text-center text-xs text-foreground/40 py-10">No data</div>;
-                      
-                      // Create 12 buckets ending this week
-                      const now = new Date();
-                      const buckets = Array.from({ length: 12 }, (_, i) => {
-                        const d = new Date(now);
-                        d.setDate(d.getDate() - (11 - i) * 7);
-                        return { week: d, count: 0 };
-                      });
-                      
-                      allDecisions.forEach(d => {
-                        const date = new Date(d.created_at);
-                        const msDiff = now.getTime() - date.getTime();
-                        const weeksAgo = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
-                        if (weeksAgo >= 0 && weeksAgo < 12) {
-                          buckets[11 - weeksAgo].count++;
-                        }
-                      });
-                      
-                      const maxCount = Math.max(...buckets.map(b => b.count), 1);
-                      
-                      return buckets.map((b, i) => {
-                        const height = Math.max((b.count / maxCount) * 100, 2); // min 2%
-                        return (
-                          <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative">
-                            <div className="w-full bg-foreground transition-all duration-300" style={{ height: `${height}%` }}></div>
-                            <div className="opacity-0 group-hover:opacity-100 absolute -top-8 bg-foreground text-background text-xs px-2 py-1 pointer-events-none transition-opacity font-mono">
-                              {b.count}
-                            </div>
-                            <div className="text-[10px] mt-2 text-foreground/40 hidden sm:block">W{12 - i}</div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
+                {/* Trend Chart (Recharts) */}
+                <div className="border border-foreground/10 p-6 h-64 flex flex-col">
+                  <div className="text-foreground/40 text-xs tracking-widest uppercase mb-4">Activity Trend (Last 12 Weeks)</div>
+                  {allDecisions.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-xs text-foreground/40 font-mono">No data to chart</div>
+                  ) : (
+                    <div className="flex-1 -ml-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorDecisions" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="var(--foreground)" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="var(--foreground)" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <XAxis dataKey="name" stroke="var(--foreground)" opacity={0.3} style={{ fontSize: '10px', fontFamily: 'monospace' }} tickLine={false} axisLine={false} />
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: 'var(--background)', borderColor: 'var(--foreground)', color: 'var(--foreground)', borderRadius: '0px', fontFamily: 'monospace', fontSize: '12px' }}
+                            itemStyle={{ color: 'var(--foreground)' }}
+                            cursor={{ stroke: 'var(--foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                          />
+                          <Area type="monotone" dataKey="decisions" stroke="var(--foreground)" strokeWidth={2} fillOpacity={1} fill="url(#colorDecisions)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
