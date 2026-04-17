@@ -1017,7 +1017,7 @@ function DashboardContent() {
               window.alert('Error deleting data: ' + res.error);
             }
           }}
-          className="px-6 py-3 border-2 border-red-500/50 text-red-500 text-xs font-black tracking-widest uppercase hover:bg-red-500 hover:text-background transition-colors"
+          className="px-6 py-3 border-2 border-red-500/50 text-red-500 text-xs font-black tracking-widest uppercase hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
         >
           [ DELETE DATA ]
         </button>
