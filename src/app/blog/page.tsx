@@ -61,11 +61,11 @@ export default function BlogPage() {
         </div>
 
         {/* Post List */}
-        <div className="space-y-0">
-          {posts.map((post, i) => (
+        <div className="space-y-6">
+          {posts.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`} className="block group">
-              <article className="py-10 border-b th-border-soft glow-card transition-all">
-                <div className="flex items-center gap-4 mb-4">
+              <article className="p-8 md:p-10 border th-border-soft glow-card transition-all">
+                <div className="flex items-center gap-4 mb-5">
                   <span className="text-xs font-black tracking-widest border border-foreground/30 px-2 py-0.5 th-text-dimmer group-hover:border-foreground/60 transition-colors">
                     {post.tag}
                   </span>
@@ -78,7 +78,7 @@ export default function BlogPage() {
                 <p className="th-text-dim text-sm leading-relaxed max-w-2xl">
                   {post.excerpt}
                 </p>
-                <div className="mt-6 text-xs font-black tracking-widest th-text-dimmer group-hover:text-foreground transition-colors uppercase">
+                <div className="mt-8 text-xs font-black tracking-widest th-text-dimmer group-hover:text-foreground transition-colors uppercase">
                   READ ARTICLE →
                 </div>
               </article>
