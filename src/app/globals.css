@@ -16,12 +16,12 @@ html.dark {
   --border-soft:    rgba(255,255,255,0.1);
   --border-faint:   rgba(255,255,255,0.05);
 
-  /* Text opacities */
-  --text-muted:     rgba(237,237,237,0.6);
-  --text-dim:       rgba(237,237,237,0.5);
-  --text-dimmer:    rgba(237,237,237,0.4);
-  --text-dimmest:   rgba(237,237,237,0.3);
-  --text-ghost:     rgba(237,237,237,0.25);
+  /* Text opacities — bumped up for readability */
+  --text-muted:     rgba(237,237,237,0.85);
+  --text-dim:       rgba(237,237,237,0.80);
+  --text-dimmer:    rgba(237,237,237,0.70);
+  --text-dimmest:   rgba(237,237,237,0.60);
+  --text-ghost:     rgba(237,237,237,0.55);
 
   /* Button inverted (primary) */
   --btn-primary-bg:   #ededed;
@@ -63,11 +63,11 @@ html.light {
   --border-faint:   rgba(0,0,0,0.08);
 
   /* Text — high contrast on white */
-  --text-muted:     rgba(0,0,0,0.70);
-  --text-dim:       rgba(0,0,0,0.60);
-  --text-dimmer:    rgba(0,0,0,0.50);
-  --text-dimmest:   rgba(0,0,0,0.40);
-  --text-ghost:     rgba(0,0,0,0.30);
+  --text-muted:     rgba(0,0,0,0.85);
+  --text-dim:       rgba(0,0,0,0.78);
+  --text-dimmer:    rgba(0,0,0,0.68);
+  --text-dimmest:   rgba(0,0,0,0.58);
+  --text-ghost:     rgba(0,0,0,0.50);
 
   /* Primary button — solid black fill, white text */
   --btn-primary-bg:          #000000;

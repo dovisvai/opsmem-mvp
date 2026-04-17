@@ -240,16 +240,41 @@ function DashboardContent() {
 
   if (!workspaceId) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-8" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
-        <div className="border-4 border-foreground p-10 text-center max-w-lg">
-          <div className="text-4xl font-black mb-6 tracking-widest">[ NO WORKSPACE ]</div>
-          <p className="text-foreground/60 text-sm mb-6 leading-relaxed">
-            Add your Slack workspace ID to the URL to access your decision memory.
-          </p>
-          <code className="bg-foreground text-background px-4 py-2 text-xs font-mono block">
-            /dashboard?workspace=YOUR_TEAM_ID
-          </code>
+      <div className="min-h-screen bg-background text-foreground flex flex-col" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+        {/* Nav */}
+        <header className="px-6 py-4 flex items-center justify-between border-b border-foreground/10">
+          <div className="flex items-center gap-3">
+            <Image src="/opsmem-logo.png" alt="OpsMem" width={28} height={28} className="th-logo" />
+            <span className="font-black text-sm tracking-widest uppercase">OPSMEM</span>
+          </div>
+        </header>
+
+        {/* Centred content */}
+        <div className="flex-1 flex flex-col items-center justify-center px-6 py-16 text-center">
+          <div className="w-full max-w-sm border-2 border-foreground p-8 glow-border">
+            <div className="text-2xl sm:text-3xl font-black mb-4 tracking-widest leading-tight">
+              [ NO WORKSPACE ]
+            </div>
+            <p className="text-foreground/60 text-sm mb-6 leading-relaxed">
+              Add your Slack workspace ID to the URL to access your decision memory.
+            </p>
+            <code className="bg-foreground text-background px-3 py-2 text-xs font-mono block break-all mb-8">
+              /dashboard?workspace=YOUR_TEAM_ID
+            </code>
+            <div className="text-foreground/40 text-xs mb-4 tracking-widest uppercase">Or install the app first</div>
+            <a
+              href="https://slack.com/oauth/v2/authorize?client_id=10826535322675.10861212633408&scope=commands,chat:write&user_scope="
+              className="block w-full py-3 border-2 border-foreground bg-foreground text-background text-xs font-black tracking-widest uppercase hover:bg-background hover:text-foreground transition-colors"
+            >
+              Add to Slack — Free
+            </a>
+          </div>
         </div>
+
+        {/* Footer */}
+        <footer className="px-6 py-4 text-center text-foreground/20 text-xs tracking-widest uppercase border-t border-foreground/10">
+          OPSMEM · POWERED BY OPENAI + SUPABASE
+        </footer>
       </div>
     );
   }
