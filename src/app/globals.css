@@ -39,6 +39,12 @@ html.dark {
 
   /* Logo filter: invert(1) makes white logo visible on dark bg */
   --logo-filter: invert(1);
+
+  /* Glow — white on dark bg */
+  --glow-color:        rgba(255,255,255,0.18);
+  --glow-color-strong: rgba(255,255,255,0.30);
+  --glow-color-subtle: rgba(255,255,255,0.08);
+  --glow-text-color:   rgba(255,255,255,0.9);
 }
 
 /* ─────────────────────────────────────────────
@@ -79,6 +85,12 @@ html.light {
 
   /* Logo filter: invert(0) keeps dark logo on white bg */
   --logo-filter: invert(0);
+
+  /* Glow — soft black glow on light bg */
+  --glow-color:        rgba(0,0,0,0.10);
+  --glow-color-strong: rgba(0,0,0,0.18);
+  --glow-color-subtle: rgba(0,0,0,0.05);
+  --glow-text-color:   rgba(0,0,0,0.9);
 }
 
 /* ─────────────────────────────────────────────
@@ -93,6 +105,62 @@ body {
 
 *, *::before, *::after {
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease, filter 0.2s ease;
+}
+
+/* ─────────────────────────────────────────────
+   GLOW KEYFRAMES
+───────────────────────────────────────────── */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 18px 2px var(--glow-color), 0 0 40px 6px var(--glow-color-subtle); }
+  50%       { box-shadow: 0 0 30px 6px var(--glow-color-strong), 0 0 65px 14px var(--glow-color); }
+}
+
+@keyframes glow-pulse-text {
+  0%, 100% { text-shadow: 0 0 12px var(--glow-color), 0 0 28px var(--glow-color-subtle); }
+  50%       { text-shadow: 0 0 22px var(--glow-color-strong), 0 0 50px var(--glow-color); }
+}
+
+@keyframes glow-border-rotate {
+  0%   { box-shadow: 0 0 15px 2px var(--glow-color); }
+  50%  { box-shadow: 0 0 25px 5px var(--glow-color-strong); }
+  100% { box-shadow: 0 0 15px 2px var(--glow-color); }
+}
+
+/* ─────────────────────────────────────────────
+   GLOW UTILITY CLASSES
+───────────────────────────────────────────── */
+/* Continuous soft glow on an element border */
+.glow-border {
+  box-shadow: 0 0 18px 2px var(--glow-color), 0 0 40px 6px var(--glow-color-subtle);
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Static glow — no animation, just ambient */
+.glow-static {
+  box-shadow: 0 0 20px 4px var(--glow-color), 0 0 50px 10px var(--glow-color-subtle);
+}
+
+/* Hover-activated glow — animates on hover */
+.glow-hover {
+  transition: box-shadow 0.4s ease;
+}
+.glow-hover:hover {
+  box-shadow: 0 0 24px 5px var(--glow-color-strong), 0 0 60px 12px var(--glow-color);
+}
+
+/* Glow effect on text */
+.glow-text {
+  text-shadow: 0 0 12px var(--glow-color), 0 0 28px var(--glow-color-subtle);
+  animation: glow-pulse-text 3.5s ease-in-out infinite;
+}
+
+/* Card with glowing border on hover */
+.glow-card {
+  transition: box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.glow-card:hover {
+  box-shadow: 0 0 20px 3px var(--glow-color), 0 0 50px 8px var(--glow-color-subtle);
+  border-color: var(--glow-color-strong) !important;
 }
 
 /* ─────────────────────────────────────────────

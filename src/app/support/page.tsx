@@ -1,9 +1,21 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HomeNav } from '@/components/home-nav';
 
-export const metadata = {
-  title: 'Support — OpsMem',
-  description: 'OpsMem Support page providing accessible avenues to file bugs or seek guidance.',
+export const metadata: Metadata = {
+  title: 'Support',
+  description: 'Get help with OpsMem. Contact our support team at support@opsmem.com — no account required. We respond within 2 business days.',
+  keywords: ['OpsMem support', 'Slack app help', 'OpsMem contact', 'decision log support'],
+  alternates: {
+    canonical: 'https://opsmem.com/support',
+  },
+  openGraph: {
+    title: 'Support | OpsMem',
+    description: 'Reach the OpsMem support team. Email support@opsmem.com — no account needed. 2-business-day response SLA.',
+    url: 'https://opsmem.com/support',
+    type: 'website',
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function SupportPage() {

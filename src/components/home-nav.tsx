@@ -23,6 +23,7 @@ export function HomeNav() {
         <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
       </div>
       <div className="flex items-center gap-4">
+        <Link href="/blog" className="th-nav-link text-xs tracking-widest transition-colors uppercase">Blog</Link>
         <Link href="/dashboard" className="th-nav-link text-xs tracking-widest transition-colors uppercase">Dashboard</Link>
         <Link href="/pricing" className="th-nav-link text-xs tracking-widest transition-colors uppercase">Pricing</Link>
         <ThemeToggle />

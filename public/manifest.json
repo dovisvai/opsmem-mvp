@@ -1,0 +1,16 @@
+{
+  "name": "OpsMem",
+  "short_name": "OpsMem",
+  "description": "Team decision memory for Slack — log, find, and analyze every decision your team makes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#ededed",
+  "icons": [
+    {
+      "src": "/opsmem.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}

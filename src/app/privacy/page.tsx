@@ -1,9 +1,21 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HomeNav } from '@/components/home-nav';
 
-export const metadata = {
-  title: 'Privacy Policy — OpsMem',
-  description: 'OpsMem Privacy Policy outlining data erasure rights, third-party integrations, and operations jurisdiction.',
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Read the OpsMem Privacy Policy. Learn how we collect, store, and protect your data — including Slack workspace information, decision vectors, and billing metadata.',
+  keywords: ['OpsMem privacy policy', 'data protection', 'GDPR', 'Slack app privacy', 'data erasure'],
+  alternates: {
+    canonical: 'https://opsmem.com/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy | OpsMem',
+    description: 'Understand how OpsMem handles your data, your rights to erasure, and our third-party integrations.',
+    url: 'https://opsmem.com/privacy',
+    type: 'website',
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function PrivacyPage() {

@@ -1,11 +1,22 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { HomeNav } from '@/components/home-nav';
 
-export const metadata = {
-  title: 'OpsMem — Team Decision Log',
-  description: 'Never lose critical context again. OpsMem is your persistent team memory, powered by OpenAI semantic search and Slack.',
+export const metadata: Metadata = {
+  title: 'OpsMem — Team Decision Memory for Slack',
+  description: 'OpsMem is the persistent team decision memory for Slack. Log any decision with /decide, search past decisions instantly with AI, and never lose critical context again.',
+  keywords: ['team decision log', 'Slack bot', 'decision memory', 'AI semantic search', 'team knowledge base', 'OpsMem'],
+  alternates: {
+    canonical: 'https://opsmem.com',
+  },
+  openGraph: {
+    title: 'OpsMem — Team Decision Memory for Slack',
+    description: 'Log decisions with /decide, find any past context with /find, and track team trends — all inside Slack.',
+    url: 'https://opsmem.com',
+    type: 'website',
+  },
 };
 
 export default function Home() {
@@ -19,7 +30,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center">
 
         {/* Pixel Logo */}
-        <div className="mb-10 border-4 th-border-strong p-4 inline-block" style={{ imageRendering: 'pixelated' }}>
+        <div className="mb-10 border-4 th-border-strong p-4 inline-block glow-border" style={{ imageRendering: 'pixelated' }}>
           <Image
             src="/opsmem-logo.png"
             alt="OpsMem Logo"
@@ -33,7 +44,7 @@ export default function Home() {
         {/* Tagline */}
         <h1 className="text-4xl md:text-6xl font-black tracking-tight uppercase mb-4 leading-none">
           YOUR TEAM&apos;S<br />
-          <span className="border-b-4 th-border-strong pb-1">DECISION MEMORY</span>
+          <span className="border-b-4 th-border-strong pb-1 glow-text">DECISION MEMORY</span>
         </h1>
 
         <p className="th-text-muted text-sm md:text-base max-w-xl mx-auto mt-6 leading-relaxed tracking-wide">
@@ -45,12 +56,12 @@ export default function Home() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mt-12">
           <Link href="/dashboard">
-            <button className="th-btn-primary w-full sm:w-auto px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px]">
+            <button className="th-btn-primary w-full sm:w-auto px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px] glow-hover">
               [ GO TO DASHBOARD ]
             </button>
           </Link>
           <Link href="/pricing">
-            <button className="th-btn-secondary w-full sm:w-auto px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px]">
+            <button className="th-btn-secondary w-full sm:w-auto px-8 py-4 font-black uppercase tracking-widest text-sm border-4 transition-all duration-100 cursor-pointer min-w-[200px] glow-hover">
               [ VIEW PRICING ]
             </button>
           </Link>
@@ -63,13 +74,13 @@ export default function Home() {
         </div>
 
         {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 mt-20 w-full max-w-3xl border th-border-soft">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 mt-20 w-full max-w-3xl border th-border-soft glow-static">
           {[
             { cmd: '/decide', desc: 'Log any team decision directly from Slack. Add #tags anywhere in your message — e.g. #backend #q4 — to organise decisions automatically.' },
             { cmd: '/find', desc: 'Retrieve any past decision using natural language. AI finds the closest match.' },
             { cmd: 'Dashboard', desc: 'Browse, search, and manage your entire decision history in a clean web UI.' },
           ].map((f, i) => (
-            <div key={i} className="th-card-hover p-6 border-r th-border-faint last:border-r-0 text-left transition-colors">
+            <div key={i} className="th-card-hover glow-card p-6 border-r th-border-faint last:border-r-0 text-left transition-colors">
               <div className="font-black text-lg mb-2 font-mono">{f.cmd}</div>
               <div className="th-text-dim text-xs leading-relaxed tracking-wide">{f.desc}</div>
             </div>
@@ -80,6 +91,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t th-divider px-8 py-5 text-center th-text-ghost text-xs tracking-widest uppercase flex flex-col md:flex-row gap-4 justify-center items-center">
         <span>OPSMEM © {new Date().getFullYear()}</span>
+        <span className="hidden md:inline">—</span>
+        <Link href="/blog" className="hover:text-foreground hover:underline transition-all">BLOG</Link>
         <span className="hidden md:inline">—</span>
         <Link href="/privacy" className="hover:text-foreground hover:underline transition-all">PRIVACY</Link>
         <span className="hidden md:inline">—</span>

@@ -1,9 +1,21 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HomeNav } from '@/components/home-nav';
 
-export const metadata = {
-  title: 'Terms of Service — OpsMem',
-  description: 'OpsMem Terms of Service covering acceptable use, subscriptions, and platform boundaries.',
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: 'Read the OpsMem Terms of Service. Understand your rights, subscription terms, acceptable use policy, and liability limits when using OpsMem.',
+  keywords: ['OpsMem terms of service', 'Slack app terms', 'subscription policy', 'acceptable use'],
+  alternates: {
+    canonical: 'https://opsmem.com/terms',
+  },
+  openGraph: {
+    title: 'Terms of Service | OpsMem',
+    description: 'OpsMem Terms of Service — covering subscriptions, acceptable use, integrations, and liability.',
+    url: 'https://opsmem.com/terms',
+    type: 'website',
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function TermsPage() {

@@ -67,7 +67,7 @@ function PricingContent() {
       <main className="flex-1 px-6 py-16 max-w-4xl mx-auto w-full">
 
         <div className="text-center mb-14">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase mb-4">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase mb-4 glow-text">
             CHOOSE YOUR PLAN
           </h1>
           {workspaceId ? (
@@ -82,10 +82,10 @@ function PricingContent() {
         </div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-2 max-w-3xl mx-auto gap-0 border-2 th-border-strong">
+        <div className="grid md:grid-cols-2 max-w-3xl mx-auto gap-0 border-2 th-border-strong glow-static">
 
           {/* Free Plan */}
-          <div className="p-8 border-r th-border-medium flex flex-col">
+          <div className="p-8 border-r th-border-medium flex flex-col glow-card">
             <div className="mb-8">
               <div className="text-xs tracking-widest th-text-dimmer uppercase mb-3">STARTER</div>
               <div className="text-6xl font-black mb-1">$0</div>
@@ -115,7 +115,7 @@ function PricingContent() {
           </div>
 
           {/* Pro Plan */}
-          <div className="p-8 flex flex-col relative" style={{ background: 'var(--foreground)', color: 'var(--background)' }}>
+          <div className="p-8 flex flex-col relative glow-border" style={{ background: 'var(--foreground)', color: 'var(--background)' }}>
             <div className="absolute top-0 right-0 text-xs font-black tracking-widest px-3 py-1 uppercase" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
               RECOMMENDED
             </div>
