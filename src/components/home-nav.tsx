@@ -11,7 +11,7 @@ export function HomeNav() {
       className={`nav-header px-8 py-4 flex items-center justify-between ${scrolled ? "nav-scrolled" : ""}`}
       style={{ fontFamily: '"Courier New", Courier, monospace' }}
     >
-      <div className="flex items-center gap-4">
+      <Link href="/" className="flex items-center gap-4 hover:opacity-75 transition-opacity">
         <Image
           src="/opsmem-logo.png"
           alt="OpsMem"
@@ -21,7 +21,7 @@ export function HomeNav() {
           priority
         />
         <span className="font-black text-base tracking-widest uppercase hidden sm:inline">OPSMEM</span>
-      </div>
+      </Link>
       <div className="flex items-center gap-4">
         <Link href="/blog" className="th-nav-link text-xs tracking-widest transition-colors uppercase">Blog</Link>
         <Link href="/dashboard" className="th-nav-link text-xs tracking-widest transition-colors uppercase">Dashboard</Link>
