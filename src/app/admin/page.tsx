@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
@@ -10,19 +10,14 @@ export const metadata: Metadata = {
 };
 
 // ── Auth guard ──────────────────────────────────────────────────────────────
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? '')
-  .split(',')
-  .map(e => e.trim().toLowerCase())
-  .filter(Boolean);
+// Access via: /admin?key=YOUR_ADMIN_SECRET
+// Set ADMIN_SECRET in your .env.local and Vercel env vars.
 
-async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const email = user?.email?.toLowerCase() ?? '';
-  if (!user || !ADMIN_EMAILS.includes(email)) {
+function requireAdmin(searchParams: { key?: string }) {
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret || searchParams.key !== secret) {
     redirect('/');
   }
-  return user;
 }
 
 // ── Data fetching ───────────────────────────────────────────────────────────
@@ -90,8 +85,13 @@ async function getAdminStats() {
 }
 
 // ── Page ────────────────────────────────────────────────────────────────────
-export default async function AdminPage() {
-  await requireAdmin();
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ key?: string }>;
+}) {
+  const params = await searchParams;
+  requireAdmin(params);
   const stats = await getAdminStats();
 
   const statCards = [
