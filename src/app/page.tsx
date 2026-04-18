@@ -55,7 +55,7 @@ const faqs = [
   },
   {
     q: "What's the difference between Free and Pro?",
-    a: "Free gives you 10 decisions per month — enough to build the habit. Pro ($9/month) is unlimited decisions, full history, and advanced dashboard analytics. No seat limits either way.",
+    a: "Free gives you 10 decisions per month — enough to build the habit. Pro ($19.99/month) is unlimited decisions, full history, and advanced dashboard analytics. No seat limits either way.",
   },
   {
     q: "Can I export or delete all our data?",
