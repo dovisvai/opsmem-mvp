@@ -147,7 +147,7 @@ export default function ArticlePage() {
           <section>
             <h2 className="text-xl font-black text-foreground uppercase tracking-widest mb-4">Starting Small, Scaling Large</h2>
             <p>
-              The adoption path for OpsMem is designed to start without disruption. Install the Slack app, introduce the <span className="font-mono text-foreground text-xs border border-foreground/20 px-1">/decide</span> command in your next architecture discussion, and let the habit form organically. The free tier supports 25 decisions per month — enough for most teams to establish the habit before committing to the Pro tier for unlimited logging.
+              The adoption path for OpsMem is designed to start without disruption. Install the Slack app, introduce the <span className="font-mono text-foreground text-xs border border-foreground/20 px-1">/decide</span> command in your next architecture discussion, and let the habit form organically. The free tier supports 10 decisions per month — enough for most teams to establish the habit before committing to the Pro tier for unlimited logging.
             </p>
             <p className="mt-4">
               The long-term network effect is powerful. The more decisions captured, the richer the semantic search becomes. Six months of consistent use creates a knowledge base that your team will genuinely not want to lose — because it has become core infrastructure for how decisions get made and justified across the organization.
@@ -158,7 +158,7 @@ export default function ArticlePage() {
           <div className="border-2 th-border-strong p-8 glow-static mt-16 text-center">
             <div className="text-xs tracking-widest th-text-ghost uppercase mb-4">Build Your Team&apos;s Institutional Memory</div>
             <div className="text-2xl font-black uppercase mb-2">Start Free. Scale When Ready.</div>
-            <div className="th-text-ghost text-xs mb-8">25 decisions/month free · No credit card required</div>
+            <div className="th-text-ghost text-xs mb-8">10 decisions/month free · No credit card required</div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a href="https://slack.com/oauth/v2/authorize?client_id=10826535322675.10861212633408&scope=commands,chat:write&user_scope=" className="th-btn-primary px-8 py-3 font-black uppercase tracking-widest text-sm border-4 transition-all glow-hover inline-block">
                 Add to Slack — Free

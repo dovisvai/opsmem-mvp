@@ -108,7 +108,7 @@ export async function POST(request: Request) {
             blocks: [
               {
                 type: 'section',
-                text: { type: 'mrkdwn', text: `🚨 Free plan limit reached (25/25). No more decisions can be logged this month. Upgrade to Pro for unlimited logging.` }
+                text: { type: 'mrkdwn', text: `🚨 Free plan limit reached (10/10). No more decisions can be logged this month. Upgrade to Pro for unlimited logging.` }
               },
               upgradeButtonAction
             ]
@@ -139,16 +139,16 @@ export async function POST(request: Request) {
       ];
 
       if (usage.success && usage.tier === 'free') {
-        if (usage.count === 15) {
+        if (usage.count === 5) {
           baseBlocks.push({
             type: 'section',
-            text: { type: 'mrkdwn', text: `⚠️ You're at 15/25 Free decisions this month. Upgrade anytime for unlimited logging.` }
+            text: { type: 'mrkdwn', text: `⚠️ You're at 5/10 Free decisions this month. Upgrade anytime for unlimited logging.` }
           });
           baseBlocks.push(upgradeButtonAction);
-        } else if (usage.count === 20) {
+        } else if (usage.count === 8) {
           baseBlocks.push({
             type: 'section',
-            text: { type: 'mrkdwn', text: `⚠️ You're at 20/25 Free decisions this month. Consider upgrading soon for unlimited access.` }
+            text: { type: 'mrkdwn', text: `⚠️ You're at 8/10 Free decisions this month. Consider upgrading soon for unlimited access.` }
           });
           baseBlocks.push(upgradeButtonAction);
         }

@@ -52,7 +52,7 @@ function DashboardContent() {
   const [isManagingPlan, setIsManagingPlan] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const scrolled = useScrolled();
-  const FREE_LIMIT = 25;
+  const FREE_LIMIT = 10;
 
   // Modal state
   const [showModal, setShowModal] = useState(false);

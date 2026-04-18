@@ -50,7 +50,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-black text-foreground uppercase mb-4 tracking-widest">3. Subscriptions & Billing</h2>
             <p className="mb-3">Our payment plans are processed exclusively, securely, and asynchronously by Stripe.</p>
             <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Free Tier:</strong> Allowed up to specified usage limits (e.g. 25 decisions/month). OpsMem reserves the right to terminate abusive free tier accounts with excessive bot traffic.</li>
+              <li><strong>Free Tier:</strong> Allowed up to specified usage limits (e.g. 10 decisions/month). OpsMem reserves the right to terminate abusive free tier accounts with excessive bot traffic.</li>
               <li><strong>Pro Tier:</strong> Unlimited usage billed monthly. Subscriptions may be paused or canceled at any time using the dashboard management portal. No retroactive refunds are provided for partial months.</li>
             </ul>
           </section>

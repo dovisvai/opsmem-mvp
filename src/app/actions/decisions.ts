@@ -57,7 +57,7 @@ export async function logDecision(
       .eq('workspace_id', workspaceId)
       .gte('created_at', startOfMonth.toISOString());
 
-    if ((count || 0) >= 25) {
+    if ((count || 0) >= 10) {
       const { data: sub } = await supabaseAdmin
         .from('subscriptions')
         .select('status')
@@ -66,7 +66,7 @@ export async function logDecision(
         .maybeSingle();
 
       if (!sub) {
-        return { success: false, requiresUpgrade: true, error: 'Free plan limit reached (25 decisions/month). Upgrade for unlimited logging.' };
+        return { success: false, requiresUpgrade: true, error: 'Free plan limit reached (10 decisions/month). Upgrade for unlimited logging.' };
       }
     }
 
@@ -97,7 +97,7 @@ export async function logDecision(
 // Return current month's decision count and subscription tier.
 export async function getMonthlyUsage(workspaceId: string, _forceRefresh?: number) {
   try {
-    if (!workspaceId) return { success: false, count: 0, limit: 25, isPro: false, tier: 'free' as const, rawSub: null };
+    if (!workspaceId) return { success: false, count: 0, limit: 10, isPro: false, tier: 'free' as const, rawSub: null };
 
     const supabaseAdmin = createAdminClient();
     const startOfMonth = getStartOfMonth();
@@ -126,7 +126,7 @@ export async function getMonthlyUsage(workspaceId: string, _forceRefresh?: numbe
             await supabaseAdmin.from('subscriptions')
               .delete()
               .eq('stripe_subscription_id', sub.stripe_subscription_id);
-            return { success: true, count: count || 0, limit: 25, isPro: false, tier: 'free' as const, rawSub: null };
+            return { success: true, count: count || 0, limit: 10, isPro: false, tier: 'free' as const, rawSub: null };
           }
         } catch (e) {
           console.error('Failed to verify Stripe subscription remotely:', (e as Error).message);
@@ -139,9 +139,9 @@ export async function getMonthlyUsage(workspaceId: string, _forceRefresh?: numbe
       tier = 'pro';
     }
 
-    return { success: true, count: count || 0, limit: 25, isPro: tier === 'pro', tier, rawSub: sub };
+    return { success: true, count: count || 0, limit: 10, isPro: tier === 'pro', tier, rawSub: sub };
   } catch {
-    return { success: false, count: 0, limit: 25, isPro: false, tier: 'free' as const, rawSub: null };
+    return { success: false, count: 0, limit: 10, isPro: false, tier: 'free' as const, rawSub: null };
   }
 }
 

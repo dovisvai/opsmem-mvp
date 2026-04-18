@@ -94,7 +94,7 @@ function PricingContent() {
 
             <ul className="space-y-3 flex-1 mb-8">
               {[
-                '25 decisions / month',
+                '10 decisions / month',
                 'OpenAI semantic retrieval',
                 '/decide + /find Slack commands',
                 'Web dashboard access',
