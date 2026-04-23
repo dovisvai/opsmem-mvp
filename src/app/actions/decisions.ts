@@ -238,22 +238,6 @@ export async function deleteWorkspaceData(workspaceId: string) {
 
     if (decError) throw new Error('Failed to delete decisions: ' + decError.message);
 
-    // 2. Delete all members of this workspace
-    const { error: memError } = await supabaseAdmin
-      .from('workspace_members')
-      .delete()
-      .eq('workspace_id', workspaceId);
-
-    if (memError) throw new Error('Failed to delete members: ' + memError.message);
-
-    // 3. Delete any subscriptions for this workspace
-    const { error: subError } = await supabaseAdmin
-      .from('subscriptions')
-      .delete()
-      .eq('workspace_id', workspaceId);
-
-    if (subError) throw new Error('Failed to delete subscriptions: ' + subError.message);
-
     return { success: true };
   } catch (error) {
     console.error('Delete workspace data error:', error);

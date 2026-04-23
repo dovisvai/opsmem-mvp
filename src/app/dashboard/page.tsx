@@ -1025,26 +1025,26 @@ function DashboardContent() {
       <div className="border-t border-red-500/20 px-6 py-6 mt-8 flex flex-col items-center text-center">
         <h3 className="text-red-500/80 text-xl font-black uppercase tracking-widest mb-2">Danger Zone</h3>
         <p className="text-foreground/40 text-xs max-w-md mb-4">
-          Permanently erase all decisions, tags, and subscriptions tied to this workspace. This action cannot be undone.
+          Permanently erase all decisions and tags tied to this workspace. Your team members and active subscriptions will not be deleted.
         </p>
         <button
           onClick={async () => {
-            const confirmFirst = window.confirm('WARNING: This will permanently wipe your entire OpsMem workspace data (decisions, teammates, and tags). Are you completely sure you want to proceed?');
+            const confirmFirst = window.confirm('WARNING: This will permanently wipe all logged decisions and tags from your OpsMem workspace. Your subscription and teammates will remain. Are you sure?');
             if (!confirmFirst) return;
-            const confirmSecond = window.confirm('FINAL WARNING: This cannot be undone. Click OK to permanently delete all data.');
+            const confirmSecond = window.confirm('FINAL WARNING: This cannot be undone. Click OK to permanently delete all decisions.');
             if (!confirmSecond) return;
             
             const res = await deleteWorkspaceData(workspaceId!);
             if (res.success) {
-              window.alert('Workspace data has been permanently deleted.');
-              router.push('/');
+              window.alert('All workspace decisions have been permanently deleted.');
+              await loadAll();
             } else {
               window.alert('Error deleting data: ' + res.error);
             }
           }}
           className="px-6 py-3 border-2 border-red-500/50 text-red-500 text-xs font-black tracking-widest uppercase hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
         >
-          [ DELETE DATA ]
+          [ DELETE DATA LOGS ]
         </button>
       </div>
 
