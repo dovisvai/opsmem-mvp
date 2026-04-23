@@ -88,37 +88,17 @@ export default function InvitePage() {
               )}
             </div>
 
-            <form onSubmit={handleJoin} className="p-6 space-y-4">
-              <div>
-                <label className="text-foreground/40 text-xs tracking-widest uppercase block mb-2">YOUR NAME *</label>
-                <input
-                  type="text"
-                  placeholder="Jane Smith"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  required
-                  className="w-full bg-background border border-foreground/30 focus:border-foreground outline-none px-4 py-2 text-foreground text-sm font-mono placeholder:text-foreground/20 transition-colors"
-                />
-              </div>
-              <div>
-                <label className="text-foreground/40 text-xs tracking-widest uppercase block mb-2">YOUR EMAIL *</label>
-                <input
-                  type="email"
-                  placeholder="jane@company.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  className="w-full bg-background border border-foreground/30 focus:border-foreground outline-none px-4 py-2 text-foreground text-sm font-mono placeholder:text-foreground/20 transition-colors"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={isPending || !name.trim() || !email.trim()}
-                className="w-full py-3 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:bg-background hover:text-foreground border-2 border-foreground transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-2"
+            <div className="p-6 flex flex-col items-center justify-center space-y-4">
+              <p className="text-foreground/50 text-xs text-center leading-relaxed mb-4">
+                You must connect your Slack account to join the workspace and log decisions.
+              </p>
+              <a
+                href={`https://slack.com/oauth/v2/authorize?client_id=10826535322675.10861212633408&scope=commands,chat:write&user_scope=&state=${token}`}
+                className="w-full text-center py-3 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:bg-background hover:text-foreground border-2 border-foreground transition-all"
               >
-                {isPending ? 'JOINING...' : '[ JOIN WORKSPACE ]'}
-              </button>
-            </form>
+                [ ACCEPT VIA SLACK ]
+              </a>
+            </div>
           </div>
         )}
 

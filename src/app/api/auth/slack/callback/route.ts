@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { createAdminClient } from '@/lib/supabase/server';
+import { setSession } from '@/lib/session';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const error = searchParams.get('error');
+  const state = searchParams.get('state'); // The invite token, if present
 
   const origin =
     (await headers()).get('origin') ||
@@ -54,10 +57,96 @@ export async function GET(request: Request) {
     if (!workspaceId) {
       return NextResponse.redirect(`${origin}/?error=no_workspace`);
     }
+    
+    const slackUserId = data.authed_user?.id;
+    if (!slackUserId) {
+      return NextResponse.redirect(`${origin}/?error=no_user_id`);
+    }
+
+    const db = createAdminClient();
+
+    // 1. Check if this specific user is already a member
+    const { data: member } = await db
+      .from('workspace_members')
+      .select('role')
+      .eq('workspace_id', workspaceId)
+      .eq('slack_user_id', slackUserId)
+      .maybeSingle();
+
+    if (member) {
+      // Returning user! Just log them in.
+      await setSession(workspaceId, slackUserId, member.role);
+      return NextResponse.redirect(`${origin}/dashboard`);
+    }
+
+    // 2. User is NOT a member. Let's check if they have an invite token (passed via state)
+    if (state) {
+      const { data: invite, error: inviteErr } = await db
+        .from('workspace_members')
+        .select('id, workspace_id, accepted_at')
+        .eq('invite_token', state)
+        .single();
+
+      if (inviteErr || !invite) {
+        return NextResponse.redirect(`${origin}/?error=invalid_invite`);
+      }
+
+      if (invite.accepted_at) {
+        return NextResponse.redirect(`${origin}/?error=invite_already_used`);
+      }
+
+      if (invite.workspace_id !== workspaceId) {
+        return NextResponse.redirect(`${origin}/?error=wrong_workspace`);
+      }
+
+      // Mark invite as accepted with Slack info
+      const { error: updateErr } = await db
+        .from('workspace_members')
+        .update({
+          slack_user_id: slackUserId,
+          accepted_at: new Date().toISOString(),
+        })
+        .eq('id', invite.id);
+
+      if (updateErr) {
+        return NextResponse.redirect(`${origin}/?error=failed_to_accept_invite`);
+      }
+
+      // Successfully joined via invite!
+      await setSession(workspaceId, slackUserId, 'member');
+      return NextResponse.redirect(`${origin}/dashboard`);
+    }
+
+    // 3. User is NOT a member and has NO invite. Check if workspace exists at all.
+    const { count } = await db
+      .from('workspace_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId);
+
+    if (count && count > 0) {
+      // Workspace exists, but this user is not invited. Block access.
+      return NextResponse.redirect(`${origin}/?error=unauthorized_ask_admin`);
+    }
+
+    // 3. Workspace DOES NOT exist. This is a fresh install!
+    // Insert them as Admin.
+    const { error: insertErr } = await db
+      .from('workspace_members')
+      .insert({
+        workspace_id: workspaceId,
+        slack_user_id: slackUserId,
+        role: 'admin',
+        accepted_at: new Date().toISOString()
+      });
+
+    if (insertErr) {
+      console.error('Failed to create admin member:', insertErr);
+      return NextResponse.redirect(`${origin}/?error=failed_to_create_admin`);
+    }
 
     // Send Welcome DM to the installing user
     try {
-      if (data.access_token && data.authed_user?.id) {
+      if (data.access_token) {
         await fetch('https://slack.com/api/chat.postMessage', {
           method: 'POST',
           headers: {
@@ -65,7 +154,7 @@ export async function GET(request: Request) {
             'Authorization': `Bearer ${data.access_token}`
           },
           body: JSON.stringify({
-            channel: data.authed_user.id,
+            channel: slackUserId,
             blocks: [
               {
                 type: 'header',
@@ -97,7 +186,7 @@ export async function GET(request: Request) {
                   {
                     type: 'button',
                     text: { type: 'plain_text', text: 'Open Dashboard', emoji: true },
-                    url: `${origin}/dashboard?workspace=${workspaceId}`,
+                    url: `${origin}/dashboard`,
                     style: 'primary',
                     action_id: 'open_dashboard_welcome'
                   }
@@ -109,10 +198,11 @@ export async function GET(request: Request) {
       }
     } catch (dmErr) {
       console.error('Failed to send welcome DM:', dmErr);
-      // We don't block the redirect if the DM fails
     }
 
-    return NextResponse.redirect(`${origin}/dashboard?workspace=${workspaceId}`);
+    // Set their session and redirect
+    await setSession(workspaceId, slackUserId, 'admin');
+    return NextResponse.redirect(`${origin}/dashboard`);
   } catch (err: unknown) {
     console.error('Failed to exchange OAuth code:', err);
     return NextResponse.redirect(`${origin}/?error=internal_server_error`);

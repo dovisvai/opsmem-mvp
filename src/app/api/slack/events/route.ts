@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { logDecision, searchDecisions, getMonthlyUsage } from '@/app/actions/decisions';
+import { createAdminClient } from '@/lib/supabase/server';
 import crypto from 'crypto';
 
 export async function POST(request: Request) {
@@ -75,6 +76,22 @@ export async function POST(request: Request) {
     };
 
     if (command === '/decide') {
+      // ── AUTHORIZATION CHECK ──
+      const db = createAdminClient();
+      const { data: member } = await db
+        .from('workspace_members')
+        .select('id')
+        .eq('workspace_id', workspace_id)
+        .eq('slack_user_id', user_id)
+        .maybeSingle();
+
+      if (!member) {
+        return NextResponse.json({
+          response_type: 'ephemeral',
+          text: '🔒 You are not authorized to log decisions in this workspace. Please ask your workspace Admin for an invite link to connect your Slack account.',
+        });
+      }
+
       // Extract #hashtags from anywhere in the message
       const hashtagRegex = /#([\w-]+)/g;
       const tagsArray = [...text.matchAll(hashtagRegex)].map(m => m[1].toLowerCase());
