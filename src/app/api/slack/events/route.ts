@@ -108,7 +108,7 @@ export async function POST(request: Request) {
             blocks: [
               {
                 type: 'section',
-                text: { type: 'mrkdwn', text: `🚨 Free plan limit reached (10/10). No more decisions can be logged this month. Upgrade to Pro for unlimited logging.` }
+                text: { type: 'mrkdwn', text: `🔒 You've used all 10 free decisions this month. Your team is clearly making decisions worth remembering. Unlock unlimited for $19.99/month.` }
               },
               upgradeButtonAction
             ]
@@ -201,6 +201,24 @@ export async function POST(request: Request) {
           }
         });
       });
+
+      const usage = await getMonthlyUsage(workspace_id, Date.now());
+
+      if (usage.success && usage.tier === 'free' && usage.count >= 6) {
+        const upgradeUrl = `${siteUrl}/pricing?workspace=${workspace_id}`;
+        blocks.push({ type: 'divider' });
+        blocks.push({
+          type: 'section',
+          text: { type: 'mrkdwn', text: `💡 Found it instantly. Your team has logged ${usage.count}/10 free decisions this month. Upgrade to Pro to never hit the limit.` },
+          accessory: {
+            type: 'button',
+            text: { type: 'plain_text', text: 'Upgrade Now', emoji: true },
+            style: 'primary',
+            url: upgradeUrl,
+            action_id: 'upgrade_now_find',
+          }
+        });
+      }
 
       blocks.push(dashboardButton);
 

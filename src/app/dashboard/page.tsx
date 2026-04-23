@@ -388,16 +388,16 @@ function DashboardContent() {
             ) : (
               <>
                 <div className="flex items-baseline gap-1 mb-2">
-                  <span className={`text-2xl font-black tabular-nums ${monthlyCount >= FREE_LIMIT ? 'text-red-400' : monthlyCount >= FREE_LIMIT * 0.8 ? 'text-yellow-400' : 'text-foreground'}`}>
+                  <span className={`text-2xl font-black tabular-nums ${monthlyCount >= FREE_LIMIT ? 'text-red-500 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' : monthlyCount >= FREE_LIMIT * 0.8 ? 'text-orange-400' : 'text-foreground'}`}>
                     {monthlyCount}
                   </span>
                   <span className="text-foreground/30 text-sm">/ {FREE_LIMIT}</span>
                   <span className="text-foreground/25 text-xs ml-1">this month</span>
                 </div>
                 {/* Progress bar */}
-                <div className="h-1 bg-foreground/10 w-full mb-2">
+                <div className="h-1.5 bg-foreground/10 w-full mb-3 rounded-none overflow-hidden">
                   <div
-                    className={`h-1 transition-all ${monthlyCount >= FREE_LIMIT ? 'bg-red-400' : monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-yellow-400' : 'bg-foreground/60'}`}
+                    className={`h-full transition-all duration-500 ${monthlyCount >= FREE_LIMIT ? 'bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]' : monthlyCount >= FREE_LIMIT * 0.8 ? 'bg-orange-400' : 'bg-foreground/60'}`}
                     style={{ width: `${Math.min(100, (monthlyCount / FREE_LIMIT) * 100)}%` }}
                   />
                 </div>
