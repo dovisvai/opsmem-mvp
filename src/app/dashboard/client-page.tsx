@@ -735,21 +735,23 @@ function DashboardContent({ workspaceId, role, slackUserId }: { workspaceId: str
         {activeTab === 'analytics' && (
           <div className="relative space-y-6">
             {tier !== 'pro' && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm border border-foreground/20 p-8">
-                <div className="text-4xl font-black mb-4">🔒</div>
-                <h2 className="text-2xl font-black uppercase tracking-widest mb-2">Advanced Analytics</h2>
-                <p className="text-foreground font-medium text-sm max-w-md mx-auto text-center mb-8 leading-relaxed">
-                  Unlock detailed trends, team member insights, top topic breakdown, and PDF/CSV exports with the Pro plan.
-                </p>
-                <button
-                  onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
-                  className="px-6 py-3 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:opacity-80 transition-opacity shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-                >
-                  UPGRADE TO PRO PLAN
-                </button>
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4 backdrop-blur-[2px] bg-gradient-to-b from-transparent via-background/80 to-background">
+                <div className="bg-background border border-foreground/20 p-8 flex flex-col items-center shadow-[0_0_40px_rgba(0,0,0,0.5)] max-w-lg w-full mt-24">
+                  <div className="text-4xl font-black mb-4">🔒</div>
+                  <h2 className="text-xl font-black uppercase tracking-widest mb-2 text-center">Advanced Analytics</h2>
+                  <p className="text-foreground/70 font-mono text-xs max-w-md mx-auto text-center mb-8 leading-relaxed">
+                    Unlock detailed trends, team member insights, top topic breakdown, and PDF/CSV exports with the Pro plan.
+                  </p>
+                  <button
+                    onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
+                    className="px-6 py-3 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:opacity-80 transition-opacity w-full"
+                  >
+                    [ UPGRADE TO PRO PLAN ]
+                  </button>
+                </div>
               </div>
             )}
-            <div className={`space-y-8 animate-in fade-in duration-300 pb-12 ${tier !== 'pro' ? 'opacity-40 pointer-events-none select-none overflow-hidden max-h-[600px]' : ''}`}>
+            <div className={`space-y-8 animate-in fade-in duration-300 pb-12 ${tier !== 'pro' ? 'opacity-50 pointer-events-none select-none overflow-hidden max-h-[450px]' : ''}`}>
                 {/* Header & Export */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-foreground/10 pb-4">
                   <div>
