@@ -47,7 +47,7 @@ const faqs = [
   },
   {
     q: "How does the AI search actually work?",
-    a: "Every decision is converted into a semantic vector using OpenAI's embedding model. When you search, your query is matched by meaning — not keywords. So 'why did we ditch MySQL' finds the decision logged as 'migrated to PostgreSQL for JSONB support'.",
+    a: "Every decision is converted into a semantic vector using OpenAI's embedding model. When you search, your query is matched by meaning — not keywords. So 'why did we ditch MySQL' finds the decision logged as 'migrated to PostgreSQL for JSONB support'. Note: Because this relies on AI-generated semantic matching, results may occasionally be imprecise or miss the exact decision.",
   },
   {
     q: "Who can see our decisions?",
@@ -115,7 +115,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-0 mt-20 w-full max-w-3xl border th-border-soft glow-static">
           {[
             { cmd: '/decide', desc: 'Log any team decision directly from Slack. Add #tags anywhere in your message — e.g. #backend #q4 — to organise decisions automatically.' },
-            { cmd: '/find',   desc: 'Retrieve any past decision using natural language. AI finds the closest match.' },
+            { cmd: '/find',   desc: 'Retrieve any past decision using natural language. AI finds the closest match. Note: AI outputs may not always be accurate.' },
             { cmd: 'Dashboard', desc: 'Browse, search, and manage your entire decision history in a clean web UI.' },
           ].map((f, i) => (
             <div key={i} className="th-card-hover glow-card p-6 border-r th-border-faint last:border-r-0 text-left transition-colors">
