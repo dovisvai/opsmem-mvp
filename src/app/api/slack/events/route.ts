@@ -4,6 +4,23 @@ import { NextResponse } from 'next/server';
 import { logDecision, searchDecisions, getMonthlyUsage } from '@/app/actions/decisions';
 import { createAdminClient } from '@/lib/supabase/server';
 import crypto from 'crypto';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+// Create a new ratelimiter that allows 5 requests per 10 seconds per user
+const ratelimit = redisUrl && redisToken
+  ? new Ratelimit({
+      redis: new Redis({
+        url: redisUrl,
+        token: redisToken,
+      }),
+      limiter: Ratelimit.slidingWindow(5, '10 s'),
+      analytics: true,
+    })
+  : null;
 
 export async function POST(request: Request) {
   try {
@@ -59,6 +76,16 @@ export async function POST(request: Request) {
 
     if (!workspace_id || !user_id) {
       return NextResponse.json({ text: 'Missing workspace or user context from Slack.' });
+    }
+
+    if (ratelimit) {
+      const { success } = await ratelimit.limit(`slack_user_${user_id}`);
+      if (!success) {
+        return NextResponse.json({
+          response_type: 'ephemeral',
+          text: '⏳ You are sending requests too quickly. Please wait a few seconds and try again.',
+        });
+      }
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opsmem.com';
