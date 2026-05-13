@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { AreaChart, Area, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage, deleteWorkspaceData } from '@/app/actions/decisions';
+import { logDecision, searchDecisions, getAllDecisions, getMonthlyUsage, deleteWorkspaceData, updateDecision, deleteDecision } from '@/app/actions/decisions';
 import { getWorkspaceMembers, createInvite, WorkspaceMember } from '@/app/actions/team';
 import { createCustomerPortalSession } from '@/app/actions/stripe';
 import { useScrolled } from '@/lib/hooks/use-scrolled';
@@ -60,12 +60,19 @@ function DashboardContent({ workspaceId, role, slackUserId }: { workspaceId: str
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [aiText, setAiText] = useState('');
 
+  // Edit/Delete state
+  const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null);
+  const [editDecisionText, setEditDecisionText] = useState('');
+  const [editDecisionTags, setEditDecisionTags] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+
   // Team modal state
   const [showTeam, setShowTeam] = useState(false);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [inviteUrl, setInviteUrl] = useState('');
   const [inviteCopied, setInviteCopied] = useState(false);
   const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
+  const [slackSnippetCopied, setSlackSnippetCopied] = useState(false);
 
   // Filters
   const [tagFilter, setTagFilter] = useState('');
@@ -177,6 +184,40 @@ function DashboardContent({ workspaceId, role, slackUserId }: { workspaceId: str
         setStatusMsg(`✗ ${result.error}`);
       }
     });
+  };
+
+  const handleEditClick = (d: Decision) => {
+    setEditingDecisionId(d.id);
+    setEditDecisionText(d.text);
+    setEditDecisionTags((d.tags || []).join(', '));
+  };
+
+  const handleUpdateDecision = async () => {
+    if (!editingDecisionId || !workspaceId) return;
+    setIsUpdating(true);
+    const tagsArray = editDecisionTags.split(',').map(t => t.trim()).filter(Boolean);
+    const res = await updateDecision(editingDecisionId, editDecisionText, tagsArray, workspaceId);
+    if (res.success) {
+      setEditingDecisionId(null);
+      await loadAll();
+    } else {
+      alert('Failed to update: ' + res.error);
+    }
+    setIsUpdating(false);
+  };
+
+  const handleDeleteDecision = async (id: string) => {
+    if (!workspaceId) return;
+    const confirm = window.confirm("Are you sure you want to delete this decision?");
+    if (!confirm) return;
+    setIsUpdating(true);
+    const res = await deleteDecision(id, workspaceId);
+    if (res.success) {
+      await loadAll();
+    } else {
+      alert('Failed to delete: ' + res.error);
+    }
+    setIsUpdating(false);
   };
 
   const handleCopy = (id: string, text: string) => {
@@ -562,7 +603,9 @@ function DashboardContent({ workspaceId, role, slackUserId }: { workspaceId: str
               )}
             </div>
           ) : (
-            paginated.map((d, i) => (
+            paginated.map((d, i) => {
+              const isEditing = editingDecisionId === d.id;
+              return (
               <div
                 key={d.id}
                 className={`grid grid-cols-12 gap-3 px-4 py-4 border-b border-foreground/5 hover:bg-foreground/5 transition-colors group ${
@@ -572,45 +615,80 @@ function DashboardContent({ workspaceId, role, slackUserId }: { workspaceId: str
                 <div className="col-span-12 md:col-span-2 text-foreground/35 text-xs self-center">
                   {new Date(d.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                 </div>
-                <div className="col-span-12 md:col-span-6 text-foreground text-sm self-center leading-relaxed">
-                  {d.text}
-                </div>
-                <div className="col-span-8 md:col-span-2 flex flex-wrap gap-1 self-center">
-                  {d.tags?.filter(Boolean).map(tag => (
-                    <button
-                      key={tag}
-                      onClick={() => setTagFilter(tag === tagFilter ? '' : tag)}
-                      className={`text-xs px-1.5 border transition-colors ${
-                        tagFilter === tag
-                          ? 'border-foreground bg-foreground text-background'
-                          : 'border-foreground/15 text-foreground/40 hover:border-foreground/40'
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-                <div className="col-span-2 md:col-span-1 text-right self-center">
-                  {d.similarity !== undefined && (
-                    <span className={`text-xs font-mono font-bold tabular-nums ${
-                      d.similarity >= 0.75 ? 'text-green-400' :
-                      d.similarity >= 0.65 ? 'text-yellow-400' : 'text-foreground/30'
-                    }`}>
-                      {(d.similarity * 100).toFixed(0)}%
-                    </span>
-                  )}
-                </div>
-                <div className="col-span-2 md:col-span-1 text-right self-center">
-                  <button
-                    onClick={() => handleCopy(d.id, d.text)}
-                    className="text-foreground/20 hover:text-foreground text-xs transition-colors opacity-0 group-hover:opacity-100"
-                    title="Copy decision text"
-                  >
-                    {copiedId === d.id ? '✓' : '⎘'}
-                  </button>
-                </div>
+                {isEditing ? (
+                  <>
+                    <div className="col-span-12 md:col-span-6 flex flex-col gap-2">
+                      <textarea
+                        value={editDecisionText}
+                        onChange={(e) => setEditDecisionText(e.target.value)}
+                        className="w-full bg-background border border-foreground/30 px-2 py-1 text-sm font-mono focus:border-foreground outline-none"
+                        rows={3}
+                        disabled={isUpdating}
+                      />
+                    </div>
+                    <div className="col-span-12 md:col-span-2 flex flex-col gap-2 self-center">
+                      <input
+                        value={editDecisionTags}
+                        onChange={(e) => setEditDecisionTags(e.target.value)}
+                        placeholder="tags, comma separated"
+                        className="w-full bg-background border border-foreground/30 px-2 py-1 text-xs font-mono focus:border-foreground outline-none"
+                        disabled={isUpdating}
+                      />
+                    </div>
+                    <div className="col-span-12 md:col-span-2 flex items-center justify-end gap-3 self-center">
+                      <button onClick={handleUpdateDecision} disabled={isUpdating} className="text-xs font-bold text-green-500 hover:text-green-400 uppercase tracking-widest">[SAVE]</button>
+                      <button onClick={() => setEditingDecisionId(null)} disabled={isUpdating} className="text-xs text-foreground/40 hover:text-foreground uppercase tracking-widest">CANCEL</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="col-span-12 md:col-span-6 text-foreground text-sm self-center leading-relaxed">
+                      {d.text}
+                    </div>
+                    <div className="col-span-8 md:col-span-2 flex flex-wrap gap-1 self-center">
+                      {d.tags?.filter(Boolean).map(tag => (
+                        <button
+                          key={tag}
+                          onClick={() => setTagFilter(tag === tagFilter ? '' : tag)}
+                          className={`text-xs px-1.5 border transition-colors ${
+                            tagFilter === tag
+                              ? 'border-foreground bg-foreground text-background'
+                              : 'border-foreground/15 text-foreground/40 hover:border-foreground/40'
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="col-span-2 md:col-span-1 text-right self-center">
+                      {d.similarity !== undefined && (
+                        <span className={`text-xs font-mono font-bold tabular-nums ${
+                          d.similarity >= 0.75 ? 'text-green-400' :
+                          d.similarity >= 0.65 ? 'text-yellow-400' : 'text-foreground/30'
+                        }`}>
+                          {(d.similarity * 100).toFixed(0)}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="col-span-2 md:col-span-1 text-right self-center flex items-center justify-end gap-3">
+                      {role === 'admin' && (
+                        <>
+                          <button onClick={() => handleEditClick(d)} className="text-foreground/20 hover:text-foreground text-xs transition-colors opacity-0 group-hover:opacity-100" title="Edit decision">✎</button>
+                          <button onClick={() => handleDeleteDecision(d.id)} className="text-foreground/20 hover:text-red-400 text-xs transition-colors opacity-0 group-hover:opacity-100" title="Delete decision">✕</button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => handleCopy(d.id, d.text)}
+                        className="text-foreground/20 hover:text-foreground text-xs transition-colors opacity-0 group-hover:opacity-100"
+                        title="Copy decision text"
+                      >
+                        {copiedId === d.id ? '✓' : '⎘'}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-            ))
+            )})
           )}
         </div>
 
@@ -655,23 +733,23 @@ function DashboardContent({ workspaceId, role, slackUserId }: { workspaceId: str
         )}
 
         {activeTab === 'analytics' && (
-          <div className="space-y-6">
-            {tier !== 'pro' ? (
-              <div className="border border-foreground/20 p-12 text-center flex flex-col items-center justify-center">
+          <div className="relative space-y-6">
+            {tier !== 'pro' && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/60 backdrop-blur-sm border border-foreground/20 p-8">
                 <div className="text-4xl font-black mb-4">🔒</div>
                 <h2 className="text-2xl font-black uppercase tracking-widest mb-2">Advanced Analytics</h2>
-                <p className="text-foreground/60 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                <p className="text-foreground font-medium text-sm max-w-md mx-auto text-center mb-8 leading-relaxed">
                   Unlock detailed trends, team member insights, top topic breakdown, and PDF/CSV exports with the Pro plan.
                 </p>
                 <button
                   onClick={() => router.push(`/pricing?workspace=${workspaceId}`)}
-                  className="px-6 py-3 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:opacity-80 transition-opacity"
+                  className="px-6 py-3 bg-foreground text-background font-black text-xs tracking-widest uppercase hover:opacity-80 transition-opacity shadow-[0_0_20px_rgba(255,255,255,0.2)]"
                 >
                   UPGRADE TO PRO PLAN
                 </button>
               </div>
-            ) : (
-              <div className="space-y-8 animate-in fade-in duration-300 pb-12">
+            )}
+            <div className={`space-y-8 animate-in fade-in duration-300 pb-12 ${tier !== 'pro' ? 'opacity-40 pointer-events-none select-none overflow-hidden max-h-[600px]' : ''}`}>
                 {/* Header & Export */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-foreground/10 pb-4">
                   <div>
@@ -794,9 +872,8 @@ function DashboardContent({ workspaceId, role, slackUserId }: { workspaceId: str
                       </ResponsiveContainer>
                     </div>
                   )}
-                </div>
               </div>
-            )}
+            </div>
           </div>
         )}
       </div>
@@ -974,6 +1051,36 @@ function DashboardContent({ workspaceId, role, slackUserId }: { workspaceId: str
                     )}
                   </>
                 )}
+              </div>
+
+              {/* Slack snippet generator */}
+              <div className="border-t border-foreground/10 pt-6">
+                <div className="text-foreground/40 text-xs tracking-widest uppercase mb-3">ONBOARD YOUR TEAM</div>
+                <p className="text-foreground/30 text-xs mb-4 leading-relaxed">
+                  Copy this pre-formatted message to drop into your #general Slack channel to let your team know how to use OpsMem.
+                </p>
+                <div className="border border-foreground/30 p-4 bg-foreground/5 relative group">
+                  <pre className="text-xs font-mono text-foreground/70 whitespace-pre-wrap pr-24">
+Hey team 👋 We are now using *OpsMem* to track our decisions.
+
+When we agree on something in Slack, just use the `/decide` command to log it so we never lose context.
+
+*Example:* `/decide Migrated to PostgreSQL for JSONB support #backend`
+
+Anyone can find past decisions by using `/find {"<query>"}`. Let&apos;s build our team memory together!
+                  </pre>
+                  <button
+                    onClick={() => {
+                      const snippet = `Hey team 👋 We are now using *OpsMem* to track our decisions.\n\nWhen we agree on something in Slack, just use the \`/decide\` command to log it so we never lose context.\n\n*Example:* \`/decide Migrated to PostgreSQL for JSONB support #backend\`\n\nAnyone can find past decisions by using \`/find <query>\`. Let's build our team memory together!`;
+                      navigator.clipboard.writeText(snippet);
+                      setSlackSnippetCopied(true);
+                      setTimeout(() => setSlackSnippetCopied(false), 2000);
+                    }}
+                    className="absolute top-4 right-4 px-3 py-1.5 bg-foreground text-background font-black text-[10px] tracking-widest uppercase hover:opacity-80 transition-opacity"
+                  >
+                    {slackSnippetCopied ? '✓ COPIED' : 'COPY'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -244,3 +244,54 @@ export async function deleteWorkspaceData(workspaceId: string) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
+
+export async function updateDecision(id: string, text: string, tags: string[], workspaceId: string) {
+  try {
+    const supabaseAdmin = createAdminClient();
+    
+    // Check ownership first
+    const { data: existing, error: fetchErr } = await supabaseAdmin
+      .from('decisions')
+      .select('id')
+      .eq('id', id)
+      .eq('workspace_id', workspaceId)
+      .single();
+      
+    if (fetchErr || !existing) throw new Error('Decision not found or unauthorized');
+
+    // Generate new embedding for updated text
+    const embeddingResponse = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
+      input: text,
+    });
+    const embedding = embeddingResponse.data[0].embedding;
+
+    const { error: updateErr } = await supabaseAdmin
+      .from('decisions')
+      .update({ text, tags, embedding })
+      .eq('id', id)
+      .eq('workspace_id', workspaceId);
+
+    if (updateErr) throw new Error('Update failed: ' + updateErr.message);
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export async function deleteDecision(id: string, workspaceId: string) {
+  try {
+    const supabaseAdmin = createAdminClient();
+    const { error } = await supabaseAdmin
+      .from('decisions')
+      .delete()
+      .eq('id', id)
+      .eq('workspace_id', workspaceId);
+
+    if (error) throw new Error('Delete failed: ' + error.message);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
